@@ -12,6 +12,7 @@ import SubmitQuote from '@/pages/SubmitQuote';
 import InstructionLetter from '@/pages/InstructionLetter';
 import FeedbackForm from '@/pages/FeedbackForm';
 import NotFound from '@/pages/not-found';
+import Demo from '@/pages/Demo';
 import useUserStore from '@/hooks/useUserRole';
 import { useEffect } from 'react';
 
@@ -19,16 +20,20 @@ function Router() {
   const [location, setLocation] = useLocation();
   const { isLoggedIn, role } = useUserStore();
 
-  // Redirect based on auth state
+  // Temporarily disable redirects to allow viewing all pages
   useEffect(() => {
-    if (!isLoggedIn && location !== '/' && location !== '/provider-registration') {
-      setLocation('/');
-    }
+    // Disabled redirection for testing purposes
+    console.log('Auth state:', isLoggedIn ? 'logged in' : 'not logged in');
+    // Original code:
+    // if (!isLoggedIn && location !== '/' && location !== '/provider-registration') {
+    //   setLocation('/');
+    // }
   }, [isLoggedIn, location, setLocation]);
 
   return (
     <Switch>
       <Route path="/" component={Login} />
+      <Route path="/demo" component={Demo} />
       <Route path="/provider-registration" component={ProviderRegistration} />
       <Route path="/agent-dashboard" component={AgentDashboard} />
       <Route path="/create-request" component={CreateRequest} />

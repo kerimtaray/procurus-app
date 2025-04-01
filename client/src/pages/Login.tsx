@@ -86,6 +86,15 @@ export default function Login() {
                 <a className="text-primary hover:underline font-medium">Register here</a>
               </Link>
             </div>
+            
+            <div className="text-center mt-6 pt-4 border-t border-gray-200">
+              <p className="text-gray-600 mb-2">¿Quieres explorar todas las páginas?</p>
+              <Link href="/demo">
+                <a className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors">
+                  Modo Demostración
+                </a>
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>
