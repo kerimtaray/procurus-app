@@ -1,0 +1,56 @@
+import { Switch, Route, useLocation } from 'wouter';
+import { queryClient } from './lib/queryClient';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from '@/components/ui/toaster';
+import Login from '@/pages/Login';
+import ProviderRegistration from '@/pages/ProviderRegistration';
+import AgentDashboard from '@/pages/AgentDashboard';
+import CreateRequest from '@/pages/CreateRequest';
+import MatchingResults from '@/pages/MatchingResults';
+import ProviderDashboard from '@/pages/ProviderDashboard';
+import SubmitQuote from '@/pages/SubmitQuote';
+import InstructionLetter from '@/pages/InstructionLetter';
+import FeedbackForm from '@/pages/FeedbackForm';
+import NotFound from '@/pages/not-found';
+import useUserStore from '@/hooks/useUserRole';
+import { useEffect } from 'react';
+
+function Router() {
+  const [location, setLocation] = useLocation();
+  const { isLoggedIn, role } = useUserStore();
+
+  // Redirect based on auth state
+  useEffect(() => {
+    if (!isLoggedIn && location !== '/' && location !== '/provider-registration') {
+      setLocation('/');
+    }
+  }, [isLoggedIn, location, setLocation]);
+
+  return (
+    <Switch>
+      <Route path="/" component={Login} />
+      <Route path="/provider-registration" component={ProviderRegistration} />
+      <Route path="/agent-dashboard" component={AgentDashboard} />
+      <Route path="/create-request" component={CreateRequest} />
+      <Route path="/matching-results/:id" component={MatchingResults} />
+      <Route path="/provider-dashboard" component={ProviderDashboard} />
+      <Route path="/submit-quote/:id" component={SubmitQuote} />
+      <Route path="/instruction-letter/:id" component={InstructionLetter} />
+      <Route path="/feedback/:id" component={FeedbackForm} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <div className="min-h-screen flex flex-col">
+        <Router />
+        <Toaster />
+      </div>
+    </QueryClientProvider>
+  );
+}
+
+export default App;

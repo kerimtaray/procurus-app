@@ -1,0 +1,335 @@
+import type { Express, Request, Response } from "express";
+import { createServer, type Server } from "http";
+import { storage } from "./storage";
+import { 
+  insertUserSchema, insertProviderSchema, insertShipmentRequestSchema, 
+  insertBidSchema, insertFeedbackSchema, UserRole, ProviderStatus,
+  ShipmentRequestStatus, BidStatus
+} from "@shared/schema";
+import { z } from "zod";
+import { fromZodError } from "zod-validation-error";
+
+export async function registerRoutes(app: Express): Promise<Server> {
+  // API routes
+  // All routes are prefixed with /api
+  
+  // User routes
+  app.post("/api/login", async (req: Request, res: Response) => {
+    try {
+      const { username, role } = req.body;
+      
+      if (!username || !role || (role !== UserRole.AGENT && role !== UserRole.PROVIDER)) {
+        return res.status(400).json({ message: "Invalid username or role" });
+      }
+      
+      // Check if user exists
+      let user = await storage.getUserByUsername(username);
+      
+      // Create user if doesn't exist (mock login)
+      if (!user) {
+        const newUser = {
+          username,
+          password: "password", // Mock password
+          role,
+          companyName: role === UserRole.AGENT ? "Global Imports Inc." : "Transportes Fast"
+        };
+        
+        user = await storage.createUser(newUser);
+      }
+      
+      return res.status(200).json({ user });
+    } catch (error) {
+      console.error("Login error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Provider routes
+  app.post("/api/providers", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertProviderSchema.parse(req.body);
+      const provider = await storage.createProvider(validatedData);
+      return res.status(201).json(provider);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error("Create provider error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.get("/api/providers", async (req: Request, res: Response) => {
+    try {
+      const providers = await storage.getAllProviders();
+      return res.status(200).json(providers);
+    } catch (error) {
+      console.error("Get providers error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.get("/api/providers/top", async (req: Request, res: Response) => {
+    try {
+      const limit = Number(req.query.limit) || 3;
+      const providers = await storage.getTopProviders(limit);
+      return res.status(200).json(providers);
+    } catch (error) {
+      console.error("Get top providers error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.get("/api/providers/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const provider = await storage.getProvider(id);
+      
+      if (!provider) {
+        return res.status(404).json({ message: "Provider not found" });
+      }
+      
+      return res.status(200).json(provider);
+    } catch (error) {
+      console.error("Get provider error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.patch("/api/providers/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || !Object.values(ProviderStatus).includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      
+      const provider = await storage.updateProviderStatus(id, status);
+      return res.status(200).json(provider);
+    } catch (error) {
+      console.error("Update provider status error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Shipment request routes
+  app.post("/api/shipment-requests", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertShipmentRequestSchema.parse(req.body);
+      const request = await storage.createShipmentRequest(validatedData);
+      return res.status(201).json(request);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error("Create shipment request error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.get("/api/shipment-requests", async (req: Request, res: Response) => {
+    try {
+      const userId = Number(req.query.userId);
+      
+      if (userId) {
+        const requests = await storage.getShipmentRequestsByUserId(userId);
+        return res.status(200).json(requests);
+      } else {
+        // Return empty array for now
+        return res.status(200).json([]);
+      }
+    } catch (error) {
+      console.error("Get shipment requests error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.get("/api/shipment-requests/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const request = await storage.getShipmentRequest(id);
+      
+      if (!request) {
+        return res.status(404).json({ message: "Shipment request not found" });
+      }
+      
+      return res.status(200).json(request);
+    } catch (error) {
+      console.error("Get shipment request error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.patch("/api/shipment-requests/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || !Object.values(ShipmentRequestStatus).includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      
+      const request = await storage.updateShipmentRequestStatus(id, status);
+      return res.status(200).json(request);
+    } catch (error) {
+      console.error("Update shipment request status error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.post("/api/shipment-requests/:id/assign", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const { providerId } = req.body;
+      
+      if (!providerId) {
+        return res.status(400).json({ message: "Provider ID is required" });
+      }
+      
+      const request = await storage.assignProvider(id, providerId);
+      return res.status(200).json(request);
+    } catch (error) {
+      console.error("Assign provider error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // AI matching route
+  app.get("/api/shipment-requests/:id/match", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const providers = await storage.findMatchingProviders(id);
+      return res.status(200).json(providers);
+    } catch (error) {
+      console.error("Match providers error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Bid routes
+  app.post("/api/bids", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertBidSchema.parse(req.body);
+      const bid = await storage.createBid(validatedData);
+      return res.status(201).json(bid);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error("Create bid error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.get("/api/bids", async (req: Request, res: Response) => {
+    try {
+      const shipmentRequestId = Number(req.query.shipmentRequestId);
+      const providerId = Number(req.query.providerId);
+      
+      if (shipmentRequestId) {
+        const bids = await storage.getBidsByShipmentRequestId(shipmentRequestId);
+        return res.status(200).json(bids);
+      } else if (providerId) {
+        const bids = await storage.getBidsByProviderId(providerId);
+        return res.status(200).json(bids);
+      } else {
+        return res.status(400).json({ message: "Missing required query parameter" });
+      }
+    } catch (error) {
+      console.error("Get bids error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.get("/api/bids/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const bid = await storage.getBid(id);
+      
+      if (!bid) {
+        return res.status(404).json({ message: "Bid not found" });
+      }
+      
+      return res.status(200).json(bid);
+    } catch (error) {
+      console.error("Get bid error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.patch("/api/bids/:id/status", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || !Object.values(BidStatus).includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      
+      const bid = await storage.updateBidStatus(id, status);
+      return res.status(200).json(bid);
+    } catch (error) {
+      console.error("Update bid status error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  // Feedback routes
+  app.post("/api/feedback", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertFeedbackSchema.parse(req.body);
+      const feedback = await storage.createFeedback(validatedData);
+      return res.status(201).json(feedback);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      console.error("Create feedback error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.get("/api/feedback", async (req: Request, res: Response) => {
+    try {
+      const shipmentRequestId = Number(req.query.shipmentRequestId);
+      const providerId = Number(req.query.providerId);
+      
+      if (shipmentRequestId) {
+        const feedback = await storage.getFeedbackByShipmentRequestId(shipmentRequestId);
+        return res.status(200).json(feedback || null);
+      } else if (providerId) {
+        const feedbacks = await storage.getFeedbacksByProviderId(providerId);
+        return res.status(200).json(feedbacks);
+      } else {
+        return res.status(400).json({ message: "Missing required query parameter" });
+      }
+    } catch (error) {
+      console.error("Get feedback error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+  
+  app.get("/api/feedback/:id", async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const feedback = await storage.getFeedback(id);
+      
+      if (!feedback) {
+        return res.status(404).json({ message: "Feedback not found" });
+      }
+      
+      return res.status(200).json(feedback);
+    } catch (error) {
+      console.error("Get feedback error:", error);
+      return res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
