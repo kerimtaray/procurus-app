@@ -12,6 +12,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { UserRole } from '@shared/schema';
+import useLanguageStore from '@/hooks/useLanguage';
+import { t } from '@/lib/translations';
+import LanguageSelector from '@/components/LanguageSelector';
 
 interface NavbarProps {
   showBackButton?: boolean;
@@ -21,6 +24,7 @@ interface NavbarProps {
 
 export default function Navbar({ showBackButton = false, backUrl = "/", backText = "Back to Dashboard" }: NavbarProps) {
   const { username, role, companyName, resetUser } = useUserStore();
+  const { language } = useLanguageStore();
   
   // Get first letters of company name for avatar
   const getInitials = (name: string) => {
@@ -43,7 +47,7 @@ export default function Navbar({ showBackButton = false, backUrl = "/", backText
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <TruckIcon className={`h-6 w-6 mr-2 ${role === UserRole.AGENT ? 'text-primary' : 'text-teal-700'}`} />
-            <span className="font-bold text-xl text-gray-800">LogiConnect</span>
+            <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">Procurus</span>
           </div>
           <div className="flex items-center space-x-4">
             {showBackButton && (
@@ -67,7 +71,7 @@ export default function Navbar({ showBackButton = false, backUrl = "/", backText
                     <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
                     </svg>
-                    New Request
+                    {language === 'es' ? 'Nueva Solicitud' : 'New Request'}
                   </Button>
                 </Link>
                 <span className="text-gray-600">|</span>
@@ -87,16 +91,21 @@ export default function Navbar({ showBackButton = false, backUrl = "/", backText
               <DropdownMenuContent align="end">
                 <DropdownMenuItem>
                   <UserIcon className="mr-2 h-4 w-4" />
-                  <span>{role === UserRole.AGENT ? 'Your Profile' : 'Company Profile'}</span>
+                  <span>{role === UserRole.AGENT ? 
+                    (language === 'es' ? 'Tu Perfil' : 'Your Profile') : 
+                    (language === 'es' ? 'Perfil de Empresa' : 'Company Profile')}
+                  </span>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <SettingsIcon className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
+                  <span>{language === 'es' ? 'Configuración' : 'Settings'}</span>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <LanguageSelector />
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOutIcon className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
+                  <span>{language === 'es' ? 'Cerrar sesión' : 'Sign out'}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
