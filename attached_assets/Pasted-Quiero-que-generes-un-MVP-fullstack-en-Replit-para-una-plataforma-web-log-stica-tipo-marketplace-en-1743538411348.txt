@@ -1,0 +1,97 @@
+Quiero que generes un MVP fullstack en Replit para una plataforma web logística tipo marketplace, enfocada en transporte terrestre. El producto conecta empresas importadoras y agentes logísticos con proveedores de transporte, automatizando el proceso de búsqueda, selección, contacto y evaluación de transportistas. Usa frontend en React + Tailwind, backend con Node.js + Express, y SQLite como base de datos.
+
+---
+
+🎯 Vistas y funcionalidades clave del MVP:
+
+🔐 1. **Login Simple**
+- Usuario puede entrar como “Agente logístico” o “Proveedor”.
+- Mock login sin validación real, solo para navegar entre dashboards.
+
+---
+
+📝 2. **Portal de Registro de Proveedores**
+- Vista pública donde transportistas se dan de alta.
+- Formulario con:
+  - Nombre del proveedor
+  - RFC
+  - Tipo de unidad (Caja Seca, Plataforma, etc.)
+  - Zonas en las que opera
+  - Moneda (MXN, USD)
+  - Certificaciones (OEA, ISO, etc.)
+  - Carga de documentos (mock, simulado)
+- Se guarda en tabla `providers` con estatus "Pendiente" hasta ser aprobado.
+
+---
+
+📦 3. **Creación de Nuevo Request Logístico**
+- Agente logístico llena formulario dividido en secciones:
+  - Info general (fecha, usuario, ID)
+  - Carga (peso, tipo, volumen, requerimientos)
+  - Origen y destino (direcciones completas)
+  - Fechas de recolección y entrega
+  - Tipo de equipo requerido (enum)
+- Se guarda en `shipment_requests`.
+
+---
+
+🤖 4. **Matching de Proveedores Inteligente (IA Mock)**
+- Al enviar un request, el sistema recomienda top 3 proveedores:
+  - Basado en tipo de unidad compatible, zona, historial de cumplimiento (simulado).
+  - Muestra score o ranking.
+- Simulación de IA usando lógica condicional para el MVP.
+
+---
+
+💬 5. **Contacto por WhatsApp**
+- Para cada proveedor recomendado:
+  - Botón de “Contactar por WhatsApp” (enlace con mensaje prellenado).
+  - Opción de copiar y pegar mensaje con el link al formulario de cotización.
+
+---
+
+💸 6. **Proveedor responde con su cotización**
+- Opción para el proveedor de llenar un formulario sencillo de respuesta:
+  - Precio propuesto
+  - Tiempo de tránsito estimado
+  - Disponibilidad
+- Se guarda como `bids` relacionados al request.
+
+---
+
+📨 7. **Generación de Carta de Instrucción**
+- Una vez elegido el proveedor:
+  - Botón de “Generar carta de instrucción”.
+  - Usa plantilla con los datos del request + proveedor.
+  - Genera PDF descargable (usa jsPDF).
+
+---
+
+📊 8. **Dashboard y BI**
+- Vista para el agente logístico con:
+  - Historial de requests y proveedores asignados.
+  - Ranking de proveedores según cumplimiento (simulado).
+  - KPI’s básicos: tiempo de respuesta promedio, % de cierre, mejores zonas, etc.
+
+---
+
+📩 9. **Envío de Feedback al Proveedor**
+- Al finalizar un viaje:
+  - Se envía un pequeño formulario de feedback:
+    - ¿Llegó a tiempo? ¿Cumplió condiciones?
+  - Afecta el score del proveedor.
+
+---
+
+🧰 Tecnologías:
+- Frontend: React + Tailwind CSS
+- Backend: Node.js + Express
+- Base de datos: SQLite
+- PDF: jsPDF o similar
+- WhatsApp: enlaces con `https://wa.me/?text=` (simulado en el MVP)
+
+---
+
+🎯 Objetivo:
+- Simular el flujo completo de la operación logística entre empresa y transportista, de forma ordenada, trazable y automatizada.
+- No es necesario login real ni envíos por WhatsApp reales, solo simulación funcional.
