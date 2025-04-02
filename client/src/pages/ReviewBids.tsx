@@ -12,6 +12,16 @@ import {
   CertificationType,
   ProviderStatus
 } from '@shared/schema';
+
+// Extended provider type for mock data which includes additional properties not in the schema
+interface ExtendedProvider extends Provider {
+  contactPerson?: string;
+  email?: string;
+  phone?: string;
+  insuranceProvider?: string;
+  yearsInBusiness?: number;
+  fleetSize?: number;
+}
 import { Button } from '@/components/ui/button';
 import { 
   CheckIcon, 
@@ -88,7 +98,7 @@ export default function ReviewBids() {
   });
 
   // Fetch provider details for each bid
-  const { data: providers, isLoading: loadingProviders } = useQuery<Provider[]>({
+  const { data: providers, isLoading: loadingProviders } = useQuery<ExtendedProvider[]>({
     queryKey: ['/api/providers'],
     enabled: !!bids && bids.length > 0,
     // For demo purposes, provide example providers if the API is empty
@@ -307,9 +317,9 @@ export default function ReviewBids() {
   };
 
   // Get provider details for a bid
-  const getProviderForBid = (bid: Bid): Provider | undefined => {
+  const getProviderForBid = (bid: Bid): ExtendedProvider | undefined => {
     if (!providers) return undefined;
-    return providers.find((p: Provider) => p.id === bid.providerId);
+    return providers.find((p) => p.id === bid.providerId);
   };
 
   // Get status badge color
