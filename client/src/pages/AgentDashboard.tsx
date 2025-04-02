@@ -79,18 +79,7 @@ export default function AgentDashboard() {
       
       <div className="flex-1 bg-slate-100">
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Agent Dashboard</h1>
-            <button
-              onClick={handleCreateRequest}
-              className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md flex items-center space-x-2 shadow-md transform hover:scale-105 transition-transform"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-              </svg>
-              <span>Nueva Solicitud</span>
-            </button>
-          </div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-6">Agent Dashboard</h1>
           
           {/* KPI Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -169,7 +158,7 @@ export default function AgentDashboard() {
                             <div className="text-sm text-gray-900">{provider.completedJobs}</div>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            {renderStarRating(provider.score || 0)}
+                            {renderStarRating(provider.score)}
                           </td>
                         </tr>
                       ))
@@ -205,12 +194,9 @@ export default function AgentDashboard() {
                 <div className="mt-4 text-center">
                   <button 
                     onClick={handleCreateRequest}
-                    className="flex items-center justify-center mx-auto px-4 py-2 bg-primary/10 text-primary font-medium rounded-md hover:bg-primary/20 transition-colors"
+                    className="text-primary text-sm hover:underline"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                    </svg>
-                    Nueva Solicitud
+                    Create new request
                   </button>
                 </div>
               </CardContent>

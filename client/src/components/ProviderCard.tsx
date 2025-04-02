@@ -1,21 +1,17 @@
 import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Copy, MessageCircle, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { Copy, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Provider } from '@shared/schema';
-import { Checkbox } from '@/components/ui/checkbox';
 
 interface ProviderCardProps {
   provider: Provider & { matchPercentage?: number };
   requestId: string;
-  isSelected: boolean;
-  onToggleSelect: () => void;
 }
 
-export default function ProviderCard({ provider, requestId, isSelected, onToggleSelect }: ProviderCardProps) {
+export default function ProviderCard({ provider, requestId }: ProviderCardProps) {
   const { toast } = useToast();
-  const [expanded, setExpanded] = useState(false);
   
   // Generate initials from company name
   const getInitials = (name: string) => {
@@ -30,26 +26,20 @@ export default function ProviderCard({ provider, requestId, isSelected, onToggle
   // Generate whatsapp link with pre-filled message
   const getWhatsAppLink = () => {
     const message = encodeURIComponent(
-      `Hello ${provider.companyName}! We have a new shipping request (${requestId}). Please provide a quote at: https://procurus.com/quote/${requestId}`
+      `Hello ${provider.companyName}! We have a new shipping request (${requestId}). Please provide a quote at: https://logiconnect.com/quote/${requestId}`
     );
     return `https://wa.me/?text=${message}`;
   };
 
   // Copy message to clipboard
-  const handleCopyMessage = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    const message = `Hello ${provider.companyName}! We have a new shipping request (${requestId}). Please provide a quote at: https://procurus.com/quote/${requestId}`;
+  const handleCopyMessage = () => {
+    const message = `Hello ${provider.companyName}! We have a new shipping request (${requestId}). Please provide a quote at: https://logiconnect.com/quote/${requestId}`;
     navigator.clipboard.writeText(message);
     
     toast({
       title: "Message copied",
       description: "Quote request message copied to clipboard",
     });
-  };
-
-  // Toggle expanded state
-  const toggleExpanded = () => {
-    setExpanded(!expanded);
   };
 
   // Generate star rating
@@ -88,109 +78,74 @@ export default function ProviderCard({ provider, requestId, isSelected, onToggle
     return 'bg-gray-100 text-gray-800';
   };
 
-  // Handle checkbox click without toggling expanded state
-  const handleCheckboxClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onToggleSelect();
-  };
-
   return (
-    <Card 
-      className={`border ${isSelected ? 'border-primary bg-primary/5' : 'border-gray-200'} overflow-hidden mb-3 hover:border-primary/50 transition-colors cursor-pointer`}
-      onClick={toggleExpanded}
-    >
-      <div className="px-4 py-3 flex items-center justify-between">
+    <Card className="border border-gray-200 overflow-hidden mb-6">
+      <CardHeader className="bg-gray-50 p-4 flex justify-between items-center border-b border-gray-200">
         <div className="flex items-center">
-          <div 
-            className="mr-3"
-            onClick={handleCheckboxClick}
-          >
-            <Checkbox checked={isSelected} />
+          <div className={`${provider.companyName === 'Transportes Fast' ? 'bg-primary' : (provider.companyName === 'EcoTransport' ? 'bg-green-600' : 'bg-purple-600')} text-white rounded-full h-10 w-10 flex items-center justify-center`}>
+            <span>{getInitials(provider.companyName)}</span>
           </div>
-          <div className={`${provider.companyName === 'Transportes Fast' ? 'bg-primary' : (provider.companyName === 'EcoTransport' ? 'bg-green-600' : 'bg-purple-600')} text-white rounded-full h-8 w-8 flex items-center justify-center mr-3`}>
-            <span className="text-xs">{getInitials(provider.companyName)}</span>
+          <div className="ml-3">
+            <h2 className="text-lg font-semibold text-gray-800">{provider.companyName}</h2>
+            <div className="flex items-center text-sm">
+              {renderStarRating(provider.score)}
+              <span className="text-gray-600 ml-1">{provider.score}/5 ({provider.completedJobs} trips)</span>
+            </div>
+          </div>
+        </div>
+        {provider.matchPercentage && (
+          <div className={`rounded-full px-3 py-1 text-sm font-medium ${getMatchColor(provider.matchPercentage)}`}>
+            {provider.matchPercentage}% Match
+          </div>
+        )}
+      </CardHeader>
+      
+      <CardContent className="p-4">
+        <div className="grid md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <div className="text-sm text-gray-500">Vehicle Types</div>
+            <div className="text-sm font-medium">{provider.vehicleTypes.join(', ')}</div>
           </div>
           <div>
-            <h2 className="text-base font-medium text-gray-800">{provider.companyName}</h2>
-            <div className="flex items-center text-xs">
-              {renderStarRating(provider.score || 0)}
-              <span className="text-gray-600 ml-1">{provider.score || 0}/5 ({provider.completedJobs || 0} trips)</span>
-              {provider.matchPercentage && (
-                <span className={`ml-2 rounded-full px-2 py-0.5 text-xs font-medium ${getMatchColor(provider.matchPercentage)}`}>
-                  {provider.matchPercentage}% Match
-                </span>
-              )}
-              <span className="mx-2 text-gray-300">|</span>
-              <span className="text-xs text-gray-600">{provider.vehicleTypes.slice(0, 2).join(', ')}{provider.vehicleTypes.length > 2 ? '...' : ''}</span>
-            </div>
+            <div className="text-sm text-gray-500">Service Areas</div>
+            <div className="text-sm font-medium">{provider.serviceAreas.join(', ')}</div>
+          </div>
+          <div>
+            <div className="text-sm text-gray-500">Avg. Response Time</div>
+            <div className="text-sm font-medium">{provider.responseTime} hours</div>
+          </div>
+        </div>
+        <div className="grid md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <div className="text-sm text-gray-500">On-Time Rate</div>
+            <div className="text-sm font-medium">{provider.onTimeRate}%</div>
+          </div>
+          <div>
+            <div className="text-sm text-gray-500">Currency</div>
+            <div className="text-sm font-medium">{provider.currency}</div>
+          </div>
+          <div>
+            <div className="text-sm text-gray-500">Certifications</div>
+            <div className="text-sm font-medium">{provider.certifications?.length ? provider.certifications.join(', ') : '-'}</div>
           </div>
         </div>
         
-        <div className="flex items-center">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 w-8 p-0 mr-1"
-            onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+        <div className="flex justify-end space-x-3 mt-4">
+          <a 
+            href={getWhatsAppLink()} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="bg-green-600 text-white px-4 py-2 rounded flex items-center hover:bg-green-700 transition"
           >
-            {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            <MessageCircle className="mr-2 h-4 w-4" />
+            Contact via WhatsApp
+          </a>
+          <Button variant="outline" onClick={handleCopyMessage} className="flex items-center">
+            <Copy className="mr-2 h-4 w-4" />
+            Copy Message
           </Button>
         </div>
-      </div>
-      
-      {expanded && (
-        <CardContent className="bg-gray-50 border-t p-3">
-          <div className="grid md:grid-cols-3 gap-4 mb-3">
-            <div>
-              <div className="text-xs text-gray-500">Vehicle Types</div>
-              <div className="text-xs font-medium">{provider.vehicleTypes.join(', ')}</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-500">Service Areas</div>
-              <div className="text-xs font-medium">{provider.serviceAreas.join(', ')}</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-500">Avg. Response Time</div>
-              <div className="text-xs font-medium">{provider.responseTime} hours</div>
-            </div>
-          </div>
-          <div className="grid md:grid-cols-3 gap-4 mb-3">
-            <div>
-              <div className="text-xs text-gray-500">On-Time Rate</div>
-              <div className="text-xs font-medium">{provider.onTimeRate}%</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-500">Currency</div>
-              <div className="text-xs font-medium">{provider.currency}</div>
-            </div>
-            <div>
-              <div className="text-xs text-gray-500">Certifications</div>
-              <div className="text-xs font-medium">{provider.certifications?.length ? provider.certifications.join(', ') : '-'}</div>
-            </div>
-          </div>
-          
-          <div className="flex justify-end space-x-2 mt-3">
-            <a 
-              href={getWhatsAppLink()} 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="bg-green-600 text-white text-xs px-3 py-1.5 rounded flex items-center hover:bg-green-700 transition"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <MessageCircle className="mr-1 h-3 w-3" />
-              Contact via WhatsApp
-            </a>
-            <Button 
-              variant="outline" 
-              onClick={handleCopyMessage} 
-              className="flex items-center h-7 text-xs px-3"
-            >
-              <Copy className="mr-1 h-3 w-3" />
-              Copy Message
-            </Button>
-          </div>
-        </CardContent>
-      )}
+      </CardContent>
     </Card>
   );
 }

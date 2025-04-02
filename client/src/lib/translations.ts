@@ -13,7 +13,6 @@ type TranslationKey =
   | 'providerDashboard'
   | 'createRequest'
   | 'matchingResults'
-  | 'reviewQuotes'
   | 'instructionLetter'
   | 'feedback'
   | 'submitQuote'
@@ -81,10 +80,6 @@ export const translations: Translations = {
   matchingResults: {
     en: 'Matching Results',
     es: 'Resultados de Coincidencia'
-  },
-  reviewQuotes: {
-    en: 'Review Quotes',
-    es: 'Revisar Cotizaciones'
   },
   instructionLetter: {
     en: 'Instruction Letter',

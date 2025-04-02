@@ -1,10 +1,8 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { MapIcon, TruckIcon, CalendarIcon, ClipboardCheckIcon, ArrowRightIcon } from 'lucide-react';
+import { MapIcon, TruckIcon, CalendarIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { ShipmentRequest, ShipmentRequestStatus } from '@shared/schema';
 import { formatDate } from '@/lib/utils';
-import { useLocation } from 'wouter';
-import useLanguageStore from '@/hooks/useLanguage';
 
 interface RequestSummaryProps {
   request: ShipmentRequest;
@@ -13,9 +11,6 @@ interface RequestSummaryProps {
 }
 
 export default function RequestSummary({ request, showActions = false, onClick }: RequestSummaryProps) {
-  const [_, setLocation] = useLocation();
-  const { language } = useLanguageStore();
-  
   // Format date
   const formatDateDisplay = (date: Date) => {
     return formatDate(date, { month: 'short', day: 'numeric', year: 'numeric' });
@@ -87,30 +82,10 @@ export default function RequestSummary({ request, showActions = false, onClick }
       </div>
       
       {showActions && (
-        <div className="mt-3 flex justify-end space-x-4">
-          <button 
-            className="text-xs text-primary hover:text-primary/80 font-medium flex items-center"
-            onClick={(e) => {
-              e.stopPropagation();
-              setLocation(`/matching-results/${request.id}`);
-            }}
-          >
-            <ArrowRightIcon className="h-3 w-3 mr-1" />
-            {language === 'es' ? 'Ver Detalles' : 'View Details'}
+        <div className="mt-3 flex justify-end">
+          <button className="text-xs text-primary hover:text-primary/80 font-medium">
+            View Details
           </button>
-          
-          {request.status === ShipmentRequestStatus.PENDING && (
-            <button 
-              className="text-xs text-green-600 hover:text-green-700 font-medium flex items-center"
-              onClick={(e) => {
-                e.stopPropagation();
-                setLocation(`/review-bids/${request.id}`);
-              }}
-            >
-              <ClipboardCheckIcon className="h-3 w-3 mr-1" />
-              {language === 'es' ? 'Revisar Cotizaciones' : 'Review Quotes'}
-            </button>
-          )}
         </div>
       )}
     </div>
