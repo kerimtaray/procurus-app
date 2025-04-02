@@ -4,13 +4,14 @@ import { useParams, useLocation } from 'wouter';
 import Navbar from '@/components/Navbar';
 import { ShipmentRequest, Provider } from '@shared/schema';
 import { Button } from '@/components/ui/button';
-import { PlusCircleIcon, EditIcon, CheckIcon, MessageSquare, Check, ChevronsUpDown, ChevronDown, ChevronUp, Copy } from 'lucide-react';
+import { PlusCircleIcon, EditIcon, CheckIcon, MessageSquare, Check, ChevronsUpDown, ChevronDown, ChevronUp, Copy, SearchIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { apiRequest } from '@/lib/queryClient';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Input } from '@/components/ui/input';
 import useLanguageStore from '@/hooks/useLanguage';
 import { t } from '@/lib/translations';
 
@@ -22,6 +23,7 @@ export default function MatchingResults() {
   const [showingMore, setShowingMore] = useState(false);
   const [selectedProviders, setSelectedProviders] = useState<Provider[]>([]);
   const [openProviderId, setOpenProviderId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Fetch shipment request details
   const { data: shipmentRequest, isLoading: loadingRequest } = useQuery<ShipmentRequest>({
@@ -57,7 +59,13 @@ export default function MatchingResults() {
   };
   
   // Determine which providers to display
-  const providersToDisplay = showingMore ? allProviders : matchingProviders;
+  const allAvailableProviders = showingMore ? allProviders : matchingProviders;
+  
+  // Filter providers based on search query
+  const providersToDisplay = allAvailableProviders?.filter(provider => 
+    searchQuery === '' || 
+    provider.companyName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   // Toggle select provider
   const toggleSelectProvider = (provider: Provider) => {
@@ -219,6 +227,24 @@ export default function MatchingResults() {
                 </div>
               </div>
 
+              {/* Search Bar */}
+              {providersToDisplay && (
+                <div className="flex mb-6">
+                  <div className="relative w-full max-w-md">
+                    <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <SearchIcon className="h-5 w-5 text-gray-400" />
+                    </div>
+                    <Input
+                      type="text"
+                      placeholder={language === 'es' ? "Buscar proveedor por nombre..." : "Search provider by name..."}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 py-2"
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Bulk Action Bar */}
               {providersToDisplay && providersToDisplay.length > 0 && (
                 <div className="flex justify-between items-center mb-6 bg-gray-50 p-3 rounded-md border border-gray-200">
@@ -261,23 +287,23 @@ export default function MatchingResults() {
                   </div>
                 ) : providersToDisplay && providersToDisplay.length > 0 ? (
                   <div className="rounded-md border border-gray-200 overflow-hidden">
-                    <table className="min-w-full divide-y divide-gray-200">
+                    <table className="min-w-full divide-y divide-gray-200 table-fixed">
                       <thead className="bg-gray-50">
                         <tr>
                           <th className="w-10 px-3 py-3"></th>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="w-1/4 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             {language === 'es' ? 'Proveedor' : 'Provider'}
                           </th>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                          <th className="w-1/4 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                             {language === 'es' ? 'Tipo de Vehículo' : 'Vehicle Type'}
                           </th>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                          <th className="w-1/4 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                             {language === 'es' ? 'Área de Servicio' : 'Service Area'}
                           </th>
-                          <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="w-1/6 px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             {language === 'es' ? 'Coincidencia' : 'Match'}
                           </th>
-                          <th className="px-3 py-3"></th>
+                          <th className="w-10 px-3 py-3"></th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -295,13 +321,13 @@ export default function MatchingResults() {
                                   onCheckedChange={() => toggleSelectProvider(provider)}
                                 />
                               </td>
-                              <td className="px-3 py-4 whitespace-nowrap">
+                              <td className="px-3 py-4">
                                 <div className="flex items-center">
                                   <div className={`${provider.companyName === 'Transportes Fast' ? 'bg-primary' : (provider.companyName === 'EcoTransport' ? 'bg-green-600' : 'bg-purple-600')} text-white rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0`}>
                                     <span className="text-xs">{getInitials(provider.companyName)}</span>
                                   </div>
-                                  <div className="ml-3">
-                                    <div className="text-sm font-medium text-gray-900">{provider.companyName}</div>
+                                  <div className="ml-3 overflow-hidden">
+                                    <div className="text-sm font-medium text-gray-900 truncate">{provider.companyName}</div>
                                     <div className="flex items-center text-xs mt-1">
                                       {renderStarRating(provider.score)}
                                       <span className="text-gray-500 ml-1">{provider.score}/5</span>
@@ -309,17 +335,17 @@ export default function MatchingResults() {
                                   </div>
                                 </div>
                               </td>
-                              <td className="px-3 py-4 whitespace-nowrap hidden md:table-cell">
-                                <div className="text-sm text-gray-900 max-w-[150px] truncate">
+                              <td className="px-3 py-4 hidden md:table-cell">
+                                <div className="text-sm text-gray-900 truncate">
                                   {provider.vehicleTypes.join(', ')}
                                 </div>
                               </td>
-                              <td className="px-3 py-4 whitespace-nowrap hidden lg:table-cell">
-                                <div className="text-sm text-gray-900 max-w-[150px] truncate">
+                              <td className="px-3 py-4 hidden lg:table-cell">
+                                <div className="text-sm text-gray-900 truncate">
                                   {provider.serviceAreas.join(', ')}
                                 </div>
                               </td>
-                              <td className="px-3 py-4 whitespace-nowrap text-center">
+                              <td className="px-3 py-4 text-center">
                                 {provider.matchPercentage && (
                                   <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${getMatchColor(provider.matchPercentage)}`}>
                                     {provider.matchPercentage}%
