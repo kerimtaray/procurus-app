@@ -4,7 +4,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import Navbar from '@/components/Navbar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileIcon, EditIcon, SendIcon, CheckIcon, XIcon } from 'lucide-react';
+import { FileIcon, Edit as EditIcon, Send as SendIcon, Check as CheckIcon, X as XIcon, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { ShipmentRequest, ShipmentRequestStatus, Provider, Bid, BidStatus } from '@shared/schema';
 import { generateClientProposalPDF } from '@/lib/pdfGenerator';
@@ -21,8 +21,7 @@ export default function ClientProposal() {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [marginPercent, setMarginPercent] = useState(10); // Default margin 10%
-  const [step, setStep] = useState<'addMargin' | 'preview' | 'waitingResponse' | 'responseReceived'>('addMargin');
-  const [clientResponded, setClientResponded] = useState<boolean | null>(null);
+  const [step, setStep] = useState<'addMargin' | 'preview' | 'completed'>('addMargin');
   const { language } = useLanguageStore();
   const { companyName: agentCompanyName, username: agentName } = useUserStore();
   
@@ -47,46 +46,7 @@ export default function ClientProposal() {
     enabled: !!acceptedBid?.providerId
   });
   
-  // Mutation to update request status
-  const { mutate: updateRequestStatus } = useMutation({
-    mutationFn: async (status: ShipmentRequestStatus) => {
-      if (!id) return;
-      return apiRequest(`/api/shipment-requests/${id}/status`, 'PATCH', {
-        status
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/shipment-requests/${id}`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/shipment-requests'] });
-      
-      toast({
-        title: "Success!",
-        description: clientResponded 
-          ? "Client has accepted the proposal. Provider has been notified."
-          : "Client response has been recorded.",
-      });
-      
-      // If accepted, we can now move to instruction letter
-      if (clientResponded) {
-        setTimeout(() => {
-          setLocation(`/instruction-letter/${id}`);
-        }, 1500);
-      } else {
-        // If rejected, go back to review bids to select another provider
-        setTimeout(() => {
-          setLocation(`/review-bids/${id}`);
-        }, 1500);
-      }
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to update the request status.",
-        variant: "destructive"
-      });
-      console.error(error);
-    }
-  });
+  // Note: We no longer need a mutation to update the status as this is now done in ReviewBids
   
   const isLoading = loadingRequest || loadingBids || loadingProvider;
   
@@ -155,7 +115,7 @@ export default function ClientProposal() {
   const handleBack = () => {
     if (step === 'preview') {
       setStep('addMargin');
-    } else if (step === 'waitingResponse' || step === 'responseReceived') {
+    } else if (step === 'completed') {
       setStep('preview');
     }
   };
@@ -221,8 +181,8 @@ export default function ClientProposal() {
       link.click();
       document.body.removeChild(link);
       
-      // Move to waiting response step
-      setStep('waitingResponse');
+      // Move to completed step
+      setStep('completed');
       
       toast({
         title: "Proposal generated!",
@@ -240,24 +200,7 @@ export default function ClientProposal() {
     }
   };
   
-  // Handle client response (accepted or rejected)
-  const handleClientResponse = (accepted: boolean) => {
-    setClientResponded(accepted);
-    setStep('responseReceived');
-    
-    // Update request status based on response
-    if (accepted) {
-      updateRequestStatus(ShipmentRequestStatus.ASSIGNED);
-    } else {
-      // Reset the provider selection
-      // In a real implementation, you would need to update the bid status back to pending
-      // and the request status would remain pending
-      toast({
-        title: "Proposal Rejected",
-        description: "Please select another provider or modify the terms.",
-      });
-    }
-  };
+  // This functionality has been moved to the ReviewBids component
   
   // Render margin configuration step
   const renderMarginStep = () => {
@@ -491,86 +434,43 @@ export default function ClientProposal() {
     );
   };
   
-  // Render waiting for client response
-  const renderWaitingResponse = () => {
+  // Render proposal completed
+  const renderCompleted = () => {
     return (
       <Card className="mb-8">
         <CardContent className="p-6 text-center">
-          <div className="bg-yellow-50 p-6 rounded-lg mb-6">
-            <h2 className="text-xl font-bold text-yellow-800 mb-3">
-              {language === 'es' ? 'Esperando Respuesta del Cliente' : 'Waiting for Client Response'}
+          <div className="bg-green-50 p-6 rounded-lg mb-6">
+            <CheckIcon className="h-12 w-12 text-green-500 mx-auto mb-4" />
+            <h2 className="text-xl font-bold text-green-800 mb-3">
+              {language === 'es' ? '¡Propuesta Generada!' : 'Proposal Generated!'}
             </h2>
-            <p className="text-yellow-700 mb-4">
+            <p className="text-green-700 mb-4">
               {language === 'es' 
-                ? 'La propuesta ha sido enviada al cliente. Actualice esta página cuando reciba una respuesta.' 
-                : 'The proposal has been sent to the client. Update this page when you receive a response.'}
+                ? 'La propuesta ha sido generada y descargada. Ahora puede presentarla al cliente para su aprobación.'
+                : 'The proposal has been generated and downloaded. You can now present it to the client for approval.'}
             </p>
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mt-6">
               <Button 
-                variant="outline" 
-                onClick={() => handleClientResponse(true)}
-                className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                onClick={() => setStep('preview')}
+                variant="outline"
+                className="bg-white text-gray-700 border-gray-300"
               >
-                <CheckIcon className="mr-2 h-4 w-4" />
-                {language === 'es' ? 'Cliente Aceptó' : 'Client Accepted'}
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {language === 'es' ? 'Volver a Vista Previa' : 'Back to Preview'}
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => handleClientResponse(false)}
-                className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
-              >
-                <XIcon className="mr-2 h-4 w-4" />
-                {language === 'es' ? 'Cliente Rechazó' : 'Client Rejected'}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
-  
-  // Render client response received
-  const renderResponseReceived = () => {
-    return (
-      <Card className="mb-8">
-        <CardContent className="p-6 text-center">
-          {clientResponded ? (
-            <div className="bg-green-50 p-6 rounded-lg mb-6">
-              <CheckIcon className="h-12 w-12 text-green-500 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-green-800 mb-3">
-                {language === 'es' ? '¡Propuesta Aceptada!' : 'Proposal Accepted!'}
-              </h2>
-              <p className="text-green-700 mb-4">
-                {language === 'es' 
-                  ? 'El cliente ha aceptado la propuesta. Ahora puede generar la carta de instrucciones para el proveedor.'
-                  : 'The client has accepted the proposal. You can now generate the instruction letter for the provider.'}
-              </p>
-              <Button 
-                onClick={() => setLocation(`/instruction-letter/${id}`)}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                {language === 'es' ? 'Ir a Carta de Instrucciones' : 'Go to Instruction Letter'}
-              </Button>
-            </div>
-          ) : (
-            <div className="bg-red-50 p-6 rounded-lg mb-6">
-              <XIcon className="h-12 w-12 text-red-500 mx-auto mb-4" />
-              <h2 className="text-xl font-bold text-red-800 mb-3">
-                {language === 'es' ? 'Propuesta Rechazada' : 'Proposal Rejected'}
-              </h2>
-              <p className="text-red-700 mb-4">
-                {language === 'es' 
-                  ? 'El cliente ha rechazado la propuesta. Por favor, seleccione otro proveedor o modifique los términos.'
-                  : 'The client has rejected the proposal. Please select another provider or modify the terms.'}
-              </p>
               <Button 
                 onClick={() => setLocation(`/review-bids/${id}`)}
-                className="bg-red-600 hover:bg-red-700 text-white"
+                className="bg-primary text-white"
               >
-                {language === 'es' ? 'Volver a Selección de Proveedores' : 'Back to Provider Selection'}
+                {language === 'es' ? 'Volver a Revisión de Cotizaciones' : 'Back to Quote Review'}
               </Button>
             </div>
-          )}
+            <p className="text-sm text-gray-500 mt-8">
+              {language === 'es' 
+                ? 'Una vez que el cliente revise la propuesta, puede registrar su respuesta en la sección "Cotizaciones Aprobadas" en la página de revisión de cotizaciones.'
+                : 'Once the client reviews the proposal, you can record their response in the "Approved Quotes" section on the quote review page.'}
+            </p>
+          </div>
         </CardContent>
       </Card>
     );
@@ -598,8 +498,7 @@ export default function ClientProposal() {
             <>
               {step === 'addMargin' && renderMarginStep()}
               {step === 'preview' && renderProposalPreview()}
-              {step === 'waitingResponse' && renderWaitingResponse()}
-              {step === 'responseReceived' && renderResponseReceived()}
+              {step === 'completed' && renderCompleted()}
               
               {step === 'preview' && (
                 <div className="flex justify-between">
@@ -622,15 +521,6 @@ export default function ClientProposal() {
                     </Button>
                   </div>
                 </div>
-              )}
-              
-              {step === 'waitingResponse' && (
-                <Button
-                  variant="outline"
-                  onClick={handleBack}
-                >
-                  {language === 'es' ? 'Volver a Vista Previa' : 'Back to Preview'}
-                </Button>
               )}
             </>
           )}

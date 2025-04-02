@@ -272,10 +272,11 @@ export default function ReviewBids() {
     acceptBidMutation.mutate(selectedBidId);
   };
   
-  // New state for margin settings
+  // States for managing UI
   const [marginPercentage, setMarginPercentage] = useState<number>(15);
   const [showMarginModal, setShowMarginModal] = useState<boolean>(false);
   const [selectedAcceptedBid, setSelectedAcceptedBid] = useState<number | null>(null);
+  const [showClientApprovalModal, setShowClientApprovalModal] = useState<boolean>(false);
   
   // Calculate price with margin
   const calculatePriceWithMargin = (basePrice: number, marginPercent: number): number => {
@@ -745,6 +746,17 @@ export default function ReviewBids() {
                                           <Send className="h-4 w-4 mr-1" />
                                           {language === 'es' ? 'Generar Propuesta' : 'Generate Proposal'}
                                         </Button>
+                                        <Button
+                                          variant="outline"
+                                          onClick={() => {
+                                            setSelectedAcceptedBid(bid.id);
+                                            setShowClientApprovalModal(true);
+                                          }}
+                                          className="bg-green-600 text-white text-xs hover:bg-green-700"
+                                        >
+                                          <CheckIcon className="h-4 w-4 mr-1" />
+                                          {language === 'es' ? '¿Cliente Aprobó?' : 'Client Approved?'}
+                                        </Button>
                                       </div>
                                     </div>
                                   </div>
@@ -971,6 +983,117 @@ export default function ReviewBids() {
                 className="bg-primary text-white"
               >
                 {language === 'es' ? 'Aplicar Margen' : 'Apply Margin'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Client Approval Modal */}
+      {showClientApprovalModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              {language === 'es' ? '¿El cliente aprobó la propuesta?' : 'Did the client approve the proposal?'}
+            </h3>
+            
+            <div className="mb-6">
+              <p className="text-sm text-gray-500 mb-3">
+                {language === 'es' 
+                  ? 'Confirme si el cliente ha aprobado la propuesta. Una vez aprobada, se asignará el proveedor seleccionado y se generará la carta de instrucción.' 
+                  : 'Confirm if the client has approved the proposal. Once approved, the selected provider will be assigned and an instruction letter will be generated.'}
+              </p>
+              
+              {selectedAcceptedBid && (() => {
+                const selectedBid = bids?.find(b => b.id === selectedAcceptedBid);
+                const provider = selectedBid ? getProviderForBid(selectedBid) : null;
+                
+                if (!selectedBid || !provider) return null;
+                
+                return (
+                  <div className="p-3 bg-gray-50 rounded-md">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <Avatar className={`h-10 w-10 bg-green-600 text-white`}>
+                        <AvatarFallback>{getInitials(provider.companyName)}</AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <p className="font-medium">{provider.companyName}</p>
+                        <p className="text-sm text-gray-500">{formatCurrency(selectedBid.price, selectedBid.currency)}</p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+            
+            <div className="flex justify-center space-x-3 pt-3 border-t">
+              <Button
+                variant="outline"
+                onClick={() => setShowClientApprovalModal(false)}
+                className="border-gray-300"
+              >
+                {language === 'es' ? 'Cancelar' : 'Cancel'}
+              </Button>
+              <Button
+                onClick={() => {
+                  // In a real implementation, we would update the request status to "Assigned"
+                  // and generate the instruction letter
+                  if (!id || !selectedAcceptedBid) return;
+                  
+                  // Update request status to "ASSIGNED"
+                  apiRequest('PATCH', `/api/shipment-requests/${id}/status`, {
+                    status: "Assigned"
+                  })
+                  .then(() => {
+                    queryClient.invalidateQueries({ queryKey: [`/api/shipment-requests/${id}`] });
+                    queryClient.invalidateQueries({ queryKey: ['/api/shipment-requests'] });
+                    
+                    toast({
+                      title: language === 'es' ? '¡Propuesta aprobada!' : 'Proposal approved!',
+                      description: language === 'es' 
+                        ? 'La solicitud ha sido asignada al proveedor seleccionado.' 
+                        : 'The request has been assigned to the selected provider.',
+                    });
+                    
+                    // Navigate to the instruction letter page
+                    setTimeout(() => {
+                      setLocation(`/instruction-letter/${id}`);
+                    }, 1000);
+                  })
+                  .catch(error => {
+                    console.error('Error updating request status:', error);
+                    toast({
+                      title: language === 'es' ? 'Error' : 'Error',
+                      description: language === 'es' 
+                        ? 'No se pudo actualizar el estado de la solicitud.' 
+                        : 'Failed to update the request status.',
+                      variant: 'destructive'
+                    });
+                  })
+                  .finally(() => {
+                    setShowClientApprovalModal(false);
+                  });
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <CheckIcon className="h-4 w-4 mr-2" />
+                {language === 'es' ? 'Confirmar Aprobación' : 'Confirm Approval'}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowClientApprovalModal(false);
+                  toast({
+                    title: language === 'es' ? 'Propuesta no aprobada' : 'Proposal not approved',
+                    description: language === 'es' 
+                      ? 'Se ha registrado que el cliente no aprobó la propuesta.' 
+                      : 'It has been recorded that the client did not approve the proposal.',
+                  });
+                }}
+                className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200"
+              >
+                <XIcon className="h-4 w-4 mr-2" />
+                {language === 'es' ? 'No Aprobó' : 'Not Approved'}
               </Button>
             </div>
           </div>
