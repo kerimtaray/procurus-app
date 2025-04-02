@@ -95,7 +95,7 @@ export const insertProviderSchema = createInsertSchema(providers).omit({
   createdAt: true
 });
 export type InsertProvider = z.infer<typeof insertProviderSchema>;
-export type Provider = typeof providers.$inferSelect & { matchPercentage?: number };
+export type Provider = typeof providers.$inferSelect;
 
 // Shipment request status
 export enum ShipmentRequestStatus {
