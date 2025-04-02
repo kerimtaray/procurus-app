@@ -70,6 +70,13 @@ export default function Demo() {
               
               <Button 
                 className="w-full justify-start bg-blue-600 hover:bg-blue-700"
+                onClick={() => goToPage('/review-bids/1', UserRole.AGENT)}
+              >
+                {t('reviewQuotes', language)}
+              </Button>
+              
+              <Button 
+                className="w-full justify-start bg-blue-600 hover:bg-blue-700"
                 onClick={() => goToPage('/instruction-letter/1', UserRole.AGENT)}
               >
                 {t('instructionLetter', language)}

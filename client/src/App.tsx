@@ -9,6 +9,7 @@ import CreateRequest from '@/pages/CreateRequest';
 import MatchingResults from '@/pages/MatchingResults';
 import ProviderDashboard from '@/pages/ProviderDashboard';
 import SubmitQuote from '@/pages/SubmitQuote';
+import ReviewBids from '@/pages/ReviewBids';
 import InstructionLetter from '@/pages/InstructionLetter';
 import FeedbackForm from '@/pages/FeedbackForm';
 import NotFound from '@/pages/not-found';
@@ -40,6 +41,7 @@ function Router() {
       <Route path="/matching-results/:id" component={MatchingResults} />
       <Route path="/provider-dashboard" component={ProviderDashboard} />
       <Route path="/submit-quote/:id" component={SubmitQuote} />
+      <Route path="/review-bids/:id" component={ReviewBids} />
       <Route path="/instruction-letter/:id" component={InstructionLetter} />
       <Route path="/feedback/:id" component={FeedbackForm} />
       <Route component={NotFound} />
