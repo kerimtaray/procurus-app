@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useParams, useLocation } from 'wouter';
 import Navbar from '@/components/Navbar';
@@ -10,17 +10,25 @@ import {
   VehicleType,
   ServiceArea,
   CertificationType,
-  ProviderStatus
+  ProviderStatus,
+  ShipmentRequestStatus,
+  CurrencyType
 } from '@shared/schema';
 
 // Extended provider type for mock data which includes additional properties not in the schema
-interface ExtendedProvider extends Provider {
+interface ExtendedProvider extends Omit<Provider, 'currency'> {
   contactPerson?: string;
   email?: string;
   phone?: string;
   insuranceProvider?: string;
   yearsInBusiness?: number;
   fleetSize?: number;
+  
+  // Additional properties for TypeScript compatibility
+  currency: CurrencyType;
+  onTimeRate: number;
+  responseTime: number;
+  completedJobs: number;
 }
 import { Button } from '@/components/ui/button';
 import { 
@@ -35,13 +43,16 @@ import {
   Calendar, 
   BarChart4, 
   AlertTriangle,
-  Clipboard 
+  Clipboard,
+  FileText,
+  Phone
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import useLanguageStore from '@/hooks/useLanguage';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -52,14 +63,20 @@ import {
 } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ReviewBids() {
   const { id } = useParams();
   const [_, setLocation] = useLocation();
   const { toast } = useToast();
   const { language } = useLanguageStore();
-  const [selectedBidId, setSelectedBidId] = useState<number | null>(null);
+  const [selectedBids, setSelectedBids] = useState<number[]>([]);
   const [feedbackSent, setFeedbackSent] = useState<{ [key: number]: boolean }>({});
+  const [clientApproved, setClientApproved] = useState<boolean>(false);
+  const [proposalGenerated, setProposalGenerated] = useState<boolean>(false);
+  const [selectedApprovedBid, setSelectedApprovedBid] = useState<number | null>(null);
+  const [showMarginModal, setShowMarginModal] = useState<boolean>(false);
+  const [marginPercentage, setMarginPercentage] = useState<number>(15);
   
   // Fetch shipment request details
   const { data: shipmentRequest, isLoading: loadingRequest } = useQuery<ShipmentRequest>({
@@ -119,7 +136,12 @@ export default function ReviewBids() {
         fleetSize: 45,
         score: 4.7,
         status: ProviderStatus.APPROVED,
-        createdAt: new Date()
+        createdAt: new Date(),
+        // Added required properties
+        currency: CurrencyType.USD,
+        onTimeRate: 92,
+        responseTime: 2,
+        completedJobs: 150
       },
       {
         id: 2,
@@ -137,7 +159,12 @@ export default function ReviewBids() {
         fleetSize: 28,
         score: 4.2,
         status: ProviderStatus.APPROVED,
-        createdAt: new Date()
+        createdAt: new Date(),
+        // Required properties
+        currency: CurrencyType.USD,
+        onTimeRate: 88,
+        responseTime: 3,
+        completedJobs: 120
       },
       {
         id: 3,
@@ -155,7 +182,12 @@ export default function ReviewBids() {
         fleetSize: 60,
         score: 4.9,
         status: ProviderStatus.APPROVED,
-        createdAt: new Date()
+        createdAt: new Date(),
+        // Required properties
+        currency: CurrencyType.USD,
+        onTimeRate: 95,
+        responseTime: 1,
+        completedJobs: 210
       },
       {
         id: 4,
@@ -173,7 +205,12 @@ export default function ReviewBids() {
         fleetSize: 35,
         score: 4.3,
         status: ProviderStatus.APPROVED,
-        createdAt: new Date()
+        createdAt: new Date(),
+        // Required properties
+        currency: CurrencyType.USD,
+        onTimeRate: 87,
+        responseTime: 2,
+        completedJobs: 98
       },
       {
         id: 5,
@@ -191,7 +228,12 @@ export default function ReviewBids() {
         fleetSize: 22,
         score: 3.8,
         status: ProviderStatus.APPROVED,
-        createdAt: new Date()
+        createdAt: new Date(),
+        // Required properties
+        currency: CurrencyType.USD,
+        onTimeRate: 82,
+        responseTime: 3,
+        completedJobs: 65
       }
     ]
   });
@@ -251,40 +293,120 @@ export default function ReviewBids() {
     }
   });
 
-  // Handle selection of a bid
-  const handleSelectBid = (bidId: number) => {
-    setSelectedBidId(bidId === selectedBidId ? null : bidId);
+  // Handle toggle selection of a bid
+  const handleToggleBidSelection = (bidId: number) => {
+    setSelectedBids(prev => 
+      prev.includes(bidId) 
+        ? prev.filter(id => id !== bidId) 
+        : [...prev, bidId]
+    );
+  };
+
+  // Toggle select all bids
+  const handleToggleSelectAll = (bids: Bid[]) => {
+    const pendingBids = bids.filter(b => b.status === BidStatus.PENDING && !isBidExpired(b));
+    const pendingBidIds = pendingBids.map(b => b.id);
+    
+    if (pendingBidIds.length > 0 && pendingBidIds.every(id => selectedBids.includes(id))) {
+      // If all pending bids are selected, unselect all
+      setSelectedBids([]);
+    } else {
+      // Otherwise, select all pending bids
+      setSelectedBids(pendingBidIds);
+    }
+  };
+
+  // Check if a bid is selected
+  const isBidSelected = (bidId: number) => {
+    return selectedBids.includes(bidId);
   };
 
   // Accept the selected bid
-  const handleAcceptBid = () => {
-    if (!selectedBidId) {
+  const handleAcceptBid = (bidId: number) => {
+    acceptBidMutation.mutate(bidId);
+  };
+  
+  // Reject multiple bids at once
+  const handleRejectSelectedBids = () => {
+    if (selectedBids.length === 0) {
       toast({
-        title: language === 'es' ? 'No hay oferta seleccionada' : 'No Bid Selected',
+        title: language === 'es' ? 'No hay ofertas seleccionadas' : 'No Bids Selected',
         description: language === 'es' 
-          ? 'Por favor selecciona una oferta para aceptar' 
-          : 'Please select a bid to accept',
+          ? 'Por favor selecciona las ofertas para rechazar' 
+          : 'Please select bids to reject',
         variant: 'destructive',
       });
       return;
     }
 
-    acceptBidMutation.mutate(selectedBidId);
+    // Reject each selected bid
+    selectedBids.forEach(bidId => {
+      rejectBidMutation.mutate(bidId);
+    });
+
+    // Clear selections after rejecting
+    setSelectedBids([]);
   };
-  
-  // New state for margin settings
-  const [marginPercentage, setMarginPercentage] = useState<number>(15);
-  const [showMarginModal, setShowMarginModal] = useState<boolean>(false);
-  const [selectedAcceptedBid, setSelectedAcceptedBid] = useState<number | null>(null);
+
+  // Utility function for bid expiration check
+  const isBidExpired = (bid: Bid): boolean => {
+    return bid.validUntil ? new Date(bid.validUntil) < new Date() : false;
+  };
   
   // Calculate price with margin
   const calculatePriceWithMargin = (basePrice: number, marginPercent: number): number => {
     return basePrice * (1 + marginPercent / 100);
   };
 
-  // Reject a specific bid
-  const handleRejectBid = (bidId: number) => {
-    rejectBidMutation.mutate(bidId);
+  // Mark request as assigned after client approval
+  const handleMarkAsAssigned = (bidId: number) => {
+    // In a real implementation, we would update the shipment request status
+    // For now, we'll just show a success message
+    toast({
+      title: language === 'es' ? 'Solicitud asignada' : 'Request Assigned',
+      description: language === 'es' 
+        ? 'La solicitud ha sido asignada al proveedor seleccionado' 
+        : 'The request has been assigned to the selected provider',
+    });
+    
+    // Navigate to active requests page
+    setLocation('/active-requests');
+  };
+
+  // Generate proposal for client
+  const handleGenerateProposal = (bidId: number) => {
+    setProposalGenerated(true);
+    setSelectedApprovedBid(bidId);
+    
+    // Navigate to client proposal page with the bid ID
+    setLocation(`/client-proposal/${bidId}`);
+  };
+
+  // Confirm client approval
+  const handleConfirmClientApproval = (bidId: number) => {
+    setClientApproved(true);
+    
+    toast({
+      title: language === 'es' ? 'Aprobación confirmada' : 'Approval Confirmed',
+      description: language === 'es' 
+        ? 'Se ha confirmado la aprobación del cliente' 
+        : 'Client approval has been confirmed',
+    });
+    
+    // Navigate to instruction letter page with the bid ID
+    setLocation(`/instruction-letter/${bidId}`);
+  };
+
+  // Handle WhatsApp contact
+  const handleWhatsAppContact = (phone: string, provider: string) => {
+    const message = language === 'es' 
+      ? `Hola ${provider}, quiero confirmar los detalles de la solicitud de envío ${shipmentRequest?.requestId}.`
+      : `Hello ${provider}, I want to confirm the details for shipment request ${shipmentRequest?.requestId}.`;
+    
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${phone.replace(/[^0-9]/g, '')}?text=${encodedMessage}`;
+    
+    window.open(whatsappUrl, '_blank');
   };
 
   // Send feedback to a provider
@@ -432,11 +554,6 @@ export default function ReviewBids() {
     }).format(amount);
   };
 
-  // Check if a bid has expired
-  const isBidExpired = (bid: Bid) => {
-    return bid.validUntil && new Date(bid.validUntil) < new Date();
-  };
-
   const sortedBids = bids ? [...bids].sort((a, b) => a.price - b.price) : [];
 
   return (
@@ -503,13 +620,13 @@ export default function ReviewBids() {
                           <TableRow 
                             key={bid.id} 
                             className={`${bid.status === BidStatus.ACCEPTED ? 'bg-green-50' : ''} 
-                                       ${selectedBidId === bid.id ? 'bg-blue-50' : ''}`}
+                                       ${isBidSelected(bid.id) ? 'bg-blue-50' : ''}`}
                           >
                             <TableCell className="align-middle">
                               {isSelectable && (
                                 <Checkbox 
-                                  checked={selectedBidId === bid.id}
-                                  onCheckedChange={() => handleSelectBid(bid.id)}
+                                  checked={isBidSelected(bid.id)}
+                                  onCheckedChange={() => handleToggleBidSelection(bid.id)}
                                   className="ml-1"
                                 />
                               )}
@@ -582,7 +699,7 @@ export default function ReviewBids() {
                                     variant="ghost"
                                     size="sm"
                                     className="h-8 w-8 p-0 text-red-600"
-                                    onClick={() => handleRejectBid(bid.id)}
+                                    onClick={() => rejectBidMutation.mutate(bid.id)}
                                     title={language === 'es' ? 'Rechazar oferta' : 'Reject bid'}
                                   >
                                     <XIcon className="h-4 w-4" />
@@ -611,15 +728,41 @@ export default function ReviewBids() {
                   </Table>
                   
                   {sortedBids.length > 0 && sortedBids.some(bid => bid.status === BidStatus.PENDING) && (
-                    <div className="mt-4 flex justify-end">
-                      <Button
-                        onClick={handleAcceptBid}
-                        disabled={!selectedBidId}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        <CheckIcon className="mr-2 h-4 w-4" />
-                        {language === 'es' ? 'Aceptar Oferta Seleccionada' : 'Accept Selected Quote'}
-                      </Button>
+                    <div className="mt-4 flex justify-between items-center">
+                      <div className="flex space-x-2">
+                        <Button 
+                          variant="outline" 
+                          className="text-xs"
+                          onClick={() => handleToggleSelectAll(sortedBids)}
+                        >
+                          {selectedBids.length > 0 && selectedBids.length === sortedBids.filter(b => b.status === BidStatus.PENDING && !isBidExpired(b)).length
+                            ? (language === 'es' ? 'Deseleccionar Todo' : 'Deselect All')
+                            : (language === 'es' ? 'Seleccionar Todo' : 'Select All')
+                          }
+                        </Button>
+                        
+                        {selectedBids.length > 0 && (
+                          <Button
+                            variant="outline"
+                            className="text-red-600 border-red-200 text-xs"
+                            onClick={handleRejectSelectedBids}
+                          >
+                            <XIcon className="mr-1 h-3 w-3" />
+                            {language === 'es' ? `Rechazar (${selectedBids.length})` : `Reject (${selectedBids.length})`}
+                          </Button>
+                        )}
+                      </div>
+                      
+                      {/* Solo una cotización puede ser aceptada a la vez */}
+                      {selectedBids.length === 1 && (
+                        <Button
+                          onClick={() => handleAcceptBid(selectedBids[0])}
+                          className="bg-green-600 hover:bg-green-700 text-white text-xs"
+                        >
+                          <CheckIcon className="mr-2 h-4 w-4" />
+                          {language === 'es' ? 'Aceptar Oferta Seleccionada' : 'Accept Selected Quote'}
+                        </Button>
+                      )}
                     </div>
                   )}
                   
@@ -727,24 +870,66 @@ export default function ReviewBids() {
                                         {formatDate(new Date())}
                                       </div>
                                       <div className="flex space-x-2">
-                                        <Button
-                                          variant="outline"
-                                          onClick={() => {
-                                            setSelectedAcceptedBid(bid.id);
-                                            setShowMarginModal(true);
-                                          }}
-                                          className="text-xs"
-                                        >
-                                          <DollarSign className="h-4 w-4 mr-1" />
-                                          {language === 'es' ? 'Ajustar Margen' : 'Adjust Margin'}
-                                        </Button>
-                                        <Button
-                                          onClick={() => setLocation(`/client-proposal/${id}`)} 
-                                          className="bg-primary text-white text-xs"
-                                        >
-                                          <Send className="h-4 w-4 mr-1" />
-                                          {language === 'es' ? 'Generar Propuesta' : 'Generate Proposal'}
-                                        </Button>
+                                        {!proposalGenerated ? (
+                                          <>
+                                            <Button
+                                              variant="outline"
+                                              onClick={() => {
+                                                setSelectedApprovedBid(bid.id);
+                                                setShowMarginModal(true);
+                                              }}
+                                              className="text-xs"
+                                            >
+                                              <DollarSign className="h-4 w-4 mr-1" />
+                                              {language === 'es' ? 'Ajustar Margen' : 'Adjust Margin'}
+                                            </Button>
+                                            <Button
+                                              onClick={() => handleGenerateProposal(bid.id)} 
+                                              className="bg-primary text-white text-xs"
+                                            >
+                                              <Send className="h-4 w-4 mr-1" />
+                                              {language === 'es' ? 'Generar Propuesta' : 'Generate Proposal'}
+                                            </Button>
+                                          </>
+                                        ) : !clientApproved ? (
+                                          <>
+                                            <Button
+                                              variant="outline"
+                                              onClick={() => provider && provider.phone && handleWhatsAppContact(provider.phone, provider.companyName)}
+                                              className="text-green-600 border-green-200 text-xs"
+                                              disabled={!provider || !provider.phone}
+                                            >
+                                              <Phone className="h-4 w-4 mr-1" />
+                                              {language === 'es' ? 'Contactar WhatsApp' : 'Contact WhatsApp'}
+                                            </Button>
+                                            <Button
+                                              onClick={() => handleConfirmClientApproval(bid.id)}
+                                              className="bg-green-600 hover:bg-green-700 text-white text-xs"
+                                            >
+                                              <ThumbsUp className="h-4 w-4 mr-1" />
+                                              {language === 'es' ? 'Confirmar Aprobación' : 'Confirm Approval'}
+                                            </Button>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Button
+                                              variant="outline"
+                                              onClick={() => provider && provider.phone && handleWhatsAppContact(provider.phone, provider.companyName)}
+                                              className="text-green-600 border-green-200 text-xs"
+                                              disabled={!provider || !provider.phone}
+                                            >
+                                              <Phone className="h-4 w-4 mr-1" />
+                                              {language === 'es' ? 'Contactar WhatsApp' : 'Contact WhatsApp'}
+                                            </Button>
+                                            <Button
+                                              onClick={() => handleMarkAsAssigned(bid.id)}
+                                              className="bg-blue-600 hover:bg-blue-700 text-white text-xs"
+                                            >
+                                              <Truck className="h-4 w-4 mr-1" />
+                                              {language === 'es' ? 'Asignar Servicio' : 'Assign Service'}
+                                            </Button>
+                                          </>
+                                        )}
                                       </div>
                                     </div>
                                   </div>
@@ -909,7 +1094,7 @@ export default function ReviewBids() {
               </div>
               
               {/* Preview calculation */}
-              {selectedAcceptedBid && (
+              {selectedApprovedBid && (
                 <div className="mt-4 p-3 bg-gray-50 rounded-md">
                   <h4 className="text-sm font-medium text-gray-700 mb-2">
                     {language === 'es' ? 'Vista Previa' : 'Preview'}
@@ -917,7 +1102,7 @@ export default function ReviewBids() {
                   
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     {(() => {
-                      const selectedBid = bids?.find(b => b.id === selectedAcceptedBid);
+                      const selectedBid = bids?.find(b => b.id === selectedApprovedBid);
                       if (!selectedBid) return null;
                       
                       const originalPrice = selectedBid.price;
