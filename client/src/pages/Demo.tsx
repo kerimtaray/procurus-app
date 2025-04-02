@@ -60,12 +60,26 @@ export default function Demo() {
               >
                 {t('createRequest', language)}
               </Button>
+
+              <Button 
+                className="w-full justify-start bg-blue-600 hover:bg-blue-700"
+                onClick={() => goToPage('/active-requests', UserRole.AGENT)}
+              >
+                {language === 'es' ? 'Solicitudes Activas' : 'Active Requests'}
+              </Button>
               
               <Button 
                 className="w-full justify-start bg-blue-600 hover:bg-blue-700"
                 onClick={() => goToPage('/matching-results/1', UserRole.AGENT)}
               >
                 {t('matchingResults', language)}
+              </Button>
+              
+              <Button 
+                className="w-full justify-start bg-blue-600 hover:bg-blue-700"
+                onClick={() => goToPage('/review-bids/1', UserRole.AGENT)}
+              >
+                {t('reviewQuotes', language)}
               </Button>
               
               <Button 
