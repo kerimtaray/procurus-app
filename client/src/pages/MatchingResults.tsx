@@ -290,20 +290,20 @@ export default function MatchingResults() {
                     <table className="min-w-full divide-y divide-gray-200 table-fixed">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="w-10 px-3 py-3"></th>
-                          <th className="w-1/4 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="w-10 px-3 py-4"></th>
+                          <th className="w-1/4 px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             {language === 'es' ? 'Proveedor' : 'Provider'}
                           </th>
-                          <th className="w-1/4 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                          <th className="w-1/4 px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
                             {language === 'es' ? 'Tipo de Vehículo' : 'Vehicle Type'}
                           </th>
-                          <th className="w-1/4 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                          <th className="w-1/4 px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">
                             {language === 'es' ? 'Área de Servicio' : 'Service Area'}
                           </th>
-                          <th className="w-1/6 px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="w-1/6 px-3 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             {language === 'es' ? 'Coincidencia' : 'Match'}
                           </th>
-                          <th className="w-10 px-3 py-3"></th>
+                          <th className="w-10 px-3 py-4"></th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -315,7 +315,7 @@ export default function MatchingResults() {
                             className="w-full"
                           >
                             <tr className={openProviderId === provider.id ? "bg-gray-50" : "hover:bg-gray-50"}>
-                              <td className="px-3 py-4 whitespace-nowrap">
+                              <td className="px-3 py-4">
                                 <Checkbox 
                                   checked={selectedProviders.some(p => p.id === provider.id)}
                                   onCheckedChange={() => toggleSelectProvider(provider)}
@@ -352,7 +352,7 @@ export default function MatchingResults() {
                                   </span>
                                 )}
                               </td>
-                              <td className="px-3 py-4 whitespace-nowrap text-right">
+                              <td className="px-3 py-4 text-right">
                                 <CollapsibleTrigger asChild>
                                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                                     {openProviderId === provider.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
