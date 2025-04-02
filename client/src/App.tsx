@@ -13,6 +13,7 @@ import ReviewBids from '@/pages/ReviewBids';
 import InstructionLetter from '@/pages/InstructionLetter';
 import FeedbackForm from '@/pages/FeedbackForm';
 import ActiveRequests from '@/pages/ActiveRequests';
+import ClientProposal from '@/pages/ClientProposal';
 import NotFound from '@/pages/not-found';
 import Demo from '@/pages/Demo';
 import useUserStore from '@/hooks/useUserRole';
@@ -44,6 +45,7 @@ function Router() {
       <Route path="/provider-dashboard" component={ProviderDashboard} />
       <Route path="/submit-quote/:id" component={SubmitQuote} />
       <Route path="/review-bids/:id" component={ReviewBids} />
+      <Route path="/client-proposal/:id" component={ClientProposal} />
       <Route path="/instruction-letter/:id" component={InstructionLetter} />
       <Route path="/feedback/:id" component={FeedbackForm} />
       <Route component={NotFound} />

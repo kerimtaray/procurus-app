@@ -739,7 +739,7 @@ export default function ReviewBids() {
                                           {language === 'es' ? 'Ajustar Margen' : 'Adjust Margin'}
                                         </Button>
                                         <Button
-                                          onClick={() => setLocation(`/instruction-letter/${id}`)} 
+                                          onClick={() => setLocation(`/client-proposal/${id}`)} 
                                           className="bg-primary text-white text-xs"
                                         >
                                           <Send className="h-4 w-4 mr-1" />
@@ -843,10 +843,10 @@ export default function ReviewBids() {
             {sortedBids && sortedBids.some(bid => bid.status === BidStatus.ACCEPTED) && (
               <Button
                 className="bg-primary text-white"
-                onClick={() => setLocation(`/instruction-letter/${id}`)}
+                onClick={() => setLocation(`/client-proposal/${id}`)}
               >
                 <Send className="mr-2 h-4 w-4" />
-                {language === 'es' ? 'Generar Carta de Instrucción' : 'Generate Instruction Letter'}
+                {language === 'es' ? 'Generar Propuesta para Cliente' : 'Generate Client Proposal'}
               </Button>
             )}
           </div>
