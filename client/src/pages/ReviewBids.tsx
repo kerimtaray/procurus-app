@@ -261,6 +261,16 @@ export default function ReviewBids() {
 
     acceptBidMutation.mutate(selectedBidId);
   };
+  
+  // New state for margin settings
+  const [marginPercentage, setMarginPercentage] = useState<number>(15);
+  const [showMarginModal, setShowMarginModal] = useState<boolean>(false);
+  const [selectedAcceptedBid, setSelectedAcceptedBid] = useState<number | null>(null);
+  
+  // Calculate price with margin
+  const calculatePriceWithMargin = (basePrice: number, marginPercent: number): number => {
+    return basePrice * (1 + marginPercent / 100);
+  };
 
   // Reject a specific bid
   const handleRejectBid = (bidId: number) => {
@@ -603,20 +613,136 @@ export default function ReviewBids() {
                     </div>
                   )}
                   
+                  {/* Accepted Quotes Section */}
                   {sortedBids.some(bid => bid.status === BidStatus.ACCEPTED) && (
-                    <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-md">
-                      <div className="flex items-start">
-                        <ThumbsUp className="h-5 w-5 text-green-600 mr-3 mt-0.5" />
-                        <div>
-                          <h3 className="font-medium text-green-800">
-                            {language === 'es' ? '¡Oferta aceptada!' : 'Quote accepted!'}
-                          </h3>
-                          <p className="text-sm text-green-700">
-                            {language === 'es' 
-                              ? 'Puedes proporcionar retroalimentación a todos los proveedores que participaron.' 
-                              : 'You can provide feedback to all providers who participated.'}
-                          </p>
-                        </div>
+                    <div className="mt-8">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-medium text-gray-800">
+                          {language === 'es' ? 'Cotizaciones Aprobadas' : 'Approved Quotes'}
+                        </h3>
+                        <Badge className="bg-green-100 text-green-800 border-green-200">
+                          {language === 'es' ? 'Listas para Propuesta' : 'Ready for Proposal'}
+                        </Badge>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        {sortedBids.filter(bid => bid.status === BidStatus.ACCEPTED).map((bid) => {
+                          const provider = getProviderForBid(bid);
+                          const priceWithMargin = calculatePriceWithMargin(bid.price, marginPercentage);
+                          
+                          return (
+                            <Card key={bid.id} className="border-green-200 shadow-sm">
+                              <CardContent className="p-5">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                  <div>
+                                    <h4 className="text-sm font-medium text-gray-500 mb-1">
+                                      {language === 'es' ? 'Proveedor' : 'Provider'}
+                                    </h4>
+                                    <div className="flex items-center">
+                                      <Avatar className={`h-10 w-10 ${
+                                        provider?.companyName === 'Transportes Fast' ? 'bg-blue-600' : 
+                                        provider?.companyName === 'EcoTransport' ? 'bg-green-600' : 
+                                        provider?.companyName === 'LogiMex Premium' ? 'bg-purple-600' :
+                                        provider?.companyName === 'Transportadora Mexicana' ? 'bg-amber-600' :
+                                        'bg-slate-600'
+                                      } text-white mr-3`}>
+                                        <AvatarFallback>{provider ? getInitials(provider.companyName) : 'N/A'}</AvatarFallback>
+                                      </Avatar>
+                                      <div>
+                                        <div className="font-medium">{provider?.companyName || 'Unknown Provider'}</div>
+                                        <div className="text-xs text-gray-500">
+                                          {provider?.certifications?.join(', ') || 'No certifications'}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div>
+                                    <h4 className="text-sm font-medium text-gray-500 mb-1">
+                                      {language === 'es' ? 'Detalles del Servicio' : 'Service Details'}
+                                    </h4>
+                                    <div className="grid grid-cols-2 gap-3">
+                                      <div>
+                                        <div className="text-xs text-gray-500">
+                                          {language === 'es' ? 'Tiempo de Tránsito' : 'Transit Time'}
+                                        </div>
+                                        <div className="flex items-center">
+                                          <Clock className="h-4 w-4 mr-1 text-gray-400" />
+                                          <span className="font-medium">{bid.transitTime} {bid.transitTimeUnit}</span>
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <div className="text-xs text-gray-500">
+                                          {language === 'es' ? 'Disponibilidad' : 'Availability'}
+                                        </div>
+                                        <Badge variant="outline" className="mt-1 text-xs">
+                                          {bid.availability}
+                                        </Badge>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div>
+                                    <h4 className="text-sm font-medium text-gray-500 mb-1">
+                                      {language === 'es' ? 'Información de Precio' : 'Pricing Information'}
+                                    </h4>
+                                    <div className="grid grid-cols-2 gap-3">
+                                      <div>
+                                        <div className="text-xs text-gray-500">
+                                          {language === 'es' ? 'Precio de Proveedor' : 'Provider Price'}
+                                        </div>
+                                        <div className="text-lg font-semibold text-primary">
+                                          {formatCurrency(bid.price, bid.currency)}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <div className="text-xs text-gray-500">
+                                          {language === 'es' ? 'Precio Final (con margen)' : 'Final Price (with margin)'}
+                                        </div>
+                                        <div className="text-lg font-semibold text-green-600">
+                                          {formatCurrency(priceWithMargin, bid.currency)}
+                                        </div>
+                                        <div className="text-xs text-gray-500 mt-1">
+                                          {language === 'es' ? `Margen: ${marginPercentage}%` : `Margin: ${marginPercentage}%`}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="col-span-1 md:col-span-3 border-t pt-3 mt-2">
+                                    <div className="flex justify-between items-center">
+                                      <div className="flex items-center text-sm text-gray-600">
+                                        <Calendar className="h-4 w-4 mr-1" />
+                                        {language === 'es' ? 'Aprobado el ' : 'Approved on '} 
+                                        {formatDate(new Date())}
+                                      </div>
+                                      <div className="flex space-x-2">
+                                        <Button
+                                          variant="outline"
+                                          onClick={() => {
+                                            setSelectedAcceptedBid(bid.id);
+                                            setShowMarginModal(true);
+                                          }}
+                                          className="text-xs"
+                                        >
+                                          <DollarSign className="h-4 w-4 mr-1" />
+                                          {language === 'es' ? 'Ajustar Margen' : 'Adjust Margin'}
+                                        </Button>
+                                        <Button
+                                          onClick={() => setLocation(`/instruction-letter/${id}`)} 
+                                          className="bg-primary text-white text-xs"
+                                        >
+                                          <Send className="h-4 w-4 mr-1" />
+                                          {language === 'es' ? 'Generar Propuesta' : 'Generate Proposal'}
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -716,6 +842,130 @@ export default function ReviewBids() {
           </div>
         </div>
       </div>
+      
+      {/* Margin Adjustment Modal */}
+      {showMarginModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              {language === 'es' ? 'Ajustar Margen' : 'Adjust Margin'}
+            </h3>
+            
+            <div className="mb-4">
+              <p className="text-sm text-gray-500 mb-3">
+                {language === 'es' 
+                  ? 'Especifica el porcentaje de margen que quieres añadir al precio del proveedor para la propuesta final al cliente.' 
+                  : 'Specify the margin percentage you want to add to the provider price for the final client proposal.'}
+              </p>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">5%</span>
+                  <span className="text-sm font-medium">25%</span>
+                  <span className="text-sm font-medium">50%</span>
+                </div>
+                
+                <input
+                  type="range"
+                  min="5"
+                  max="50"
+                  step="1"
+                  value={marginPercentage}
+                  onChange={(e) => setMarginPercentage(parseInt(e.target.value))}
+                  className="w-full"
+                />
+                
+                <div className="flex justify-between items-center">
+                  <label className="block text-sm font-medium text-gray-700">
+                    {language === 'es' ? 'Porcentaje de Margen' : 'Margin Percentage'}
+                  </label>
+                  <div className="flex items-center w-20 h-9 rounded-md border border-input bg-transparent pl-3 pr-2 text-sm">
+                    <input
+                      type="number"
+                      min="5"
+                      max="50"
+                      value={marginPercentage}
+                      onChange={(e) => {
+                        const value = parseInt(e.target.value);
+                        if (value >= 5 && value <= 50) {
+                          setMarginPercentage(value);
+                        }
+                      }}
+                      className="border-0 p-0 w-full focus:outline-none focus:ring-0"
+                    />
+                    <span className="text-gray-500">%</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Preview calculation */}
+              {selectedAcceptedBid && (
+                <div className="mt-4 p-3 bg-gray-50 rounded-md">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">
+                    {language === 'es' ? 'Vista Previa' : 'Preview'}
+                  </h4>
+                  
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    {(() => {
+                      const selectedBid = bids?.find(b => b.id === selectedAcceptedBid);
+                      if (!selectedBid) return null;
+                      
+                      const originalPrice = selectedBid.price;
+                      const finalPrice = calculatePriceWithMargin(originalPrice, marginPercentage);
+                      const marginAmount = finalPrice - originalPrice;
+                      
+                      return (
+                        <>
+                          <div>
+                            <span className="text-gray-500">{language === 'es' ? 'Precio Original' : 'Original Price'}</span>
+                            <div className="font-medium">{formatCurrency(originalPrice, selectedBid.currency)}</div>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">{language === 'es' ? 'Precio Final' : 'Final Price'}</span>
+                            <div className="font-medium text-green-600">{formatCurrency(finalPrice, selectedBid.currency)}</div>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">{language === 'es' ? 'Monto del Margen' : 'Margin Amount'}</span>
+                            <div className="font-medium text-primary">{formatCurrency(marginAmount, selectedBid.currency)}</div>
+                          </div>
+                          <div>
+                            <span className="text-gray-500">{language === 'es' ? 'Porcentaje' : 'Percentage'}</span>
+                            <div className="font-medium">{marginPercentage}%</div>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex justify-end space-x-3 pt-3 border-t">
+              <Button
+                variant="outline"
+                onClick={() => setShowMarginModal(false)}
+              >
+                {language === 'es' ? 'Cancelar' : 'Cancel'}
+              </Button>
+              <Button
+                onClick={() => {
+                  // In a real implementation, we would save this margin to the database
+                  toast({
+                    title: language === 'es' ? 'Margen actualizado' : 'Margin updated',
+                    description: language === 'es' 
+                      ? `El margen se ha establecido en ${marginPercentage}%` 
+                      : `Margin has been set to ${marginPercentage}%`,
+                  });
+                  setShowMarginModal(false);
+                }}
+                className="bg-primary text-white"
+              >
+                {language === 'es' ? 'Aplicar Margen' : 'Apply Margin'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
