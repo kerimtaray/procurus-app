@@ -2,7 +2,16 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useParams, useLocation } from 'wouter';
 import Navbar from '@/components/Navbar';
-import { ShipmentRequest, Provider, Bid, BidStatus } from '@shared/schema';
+import { 
+  ShipmentRequest, 
+  Provider, 
+  Bid, 
+  BidStatus,
+  VehicleType,
+  ServiceArea,
+  CertificationType,
+  ProviderStatus
+} from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { 
   CheckIcon, 
@@ -67,6 +76,99 @@ export default function ReviewBids() {
   const { data: providers, isLoading: loadingProviders } = useQuery<Provider[]>({
     queryKey: ['/api/providers'],
     enabled: !!bids && bids.length > 0,
+    // For demo purposes, provide example providers if the API is empty
+    initialData: [
+      {
+        id: 1,
+        userId: 1,
+        companyName: 'Transportes Fast',
+        rfc: 'TFA123456789',
+        contactPerson: 'Carlos Rodriguez',
+        email: 'carlos@transportesfast.com',
+        phone: '+52 555 1234 567',
+        serviceAreas: ['North', 'Central'],
+        vehicleTypes: ['Dry Van', 'Refrigerated'],
+        certifications: ['ISO9001', 'CTPAT'],
+        insuranceProvider: 'Seguros GNP',
+        yearsInBusiness: 12,
+        fleetSize: 45,
+        score: 4.7,
+        status: ProviderStatus.APPROVED,
+        createdAt: new Date()
+      },
+      {
+        id: 2,
+        userId: 2,
+        companyName: 'EcoTransport',
+        rfc: 'ECO987654321',
+        contactPerson: 'Ana Martinez',
+        email: 'ana@ecotransport.mx',
+        phone: '+52 555 9876 543',
+        serviceAreas: ['Nationwide'],
+        vehicleTypes: ['Container', 'Flatbed'],
+        certifications: ['ISO14001'],
+        insuranceProvider: 'Qualitas Seguros',
+        yearsInBusiness: 8,
+        fleetSize: 28,
+        score: 4.2,
+        status: ProviderStatus.APPROVED,
+        createdAt: new Date()
+      },
+      {
+        id: 3,
+        userId: 3,
+        companyName: 'LogiMex Premium',
+        rfc: 'LMP555666777',
+        contactPerson: 'Roberto Gomez',
+        email: 'roberto@logimex.com.mx',
+        phone: '+52 555 4444 333',
+        serviceAreas: ['Central', 'South'],
+        vehicleTypes: ['Tanker', 'Dry Van'],
+        certifications: ['OEA', 'ISO9001'],
+        insuranceProvider: 'AXA Seguros',
+        yearsInBusiness: 15,
+        fleetSize: 60,
+        score: 4.9,
+        status: ProviderStatus.APPROVED,
+        createdAt: new Date()
+      },
+      {
+        id: 4,
+        userId: 4,
+        companyName: 'Transportadora Mexicana',
+        rfc: 'TME888999000',
+        contactPerson: 'Gabriela Sanchez',
+        email: 'gabi@transmex.mx',
+        phone: '+52 555 2222 111',
+        serviceAreas: ['East', 'West'],
+        vehicleTypes: ['Flatbed', 'Container'],
+        certifications: ['CTPAT'],
+        insuranceProvider: 'Mapfre',
+        yearsInBusiness: 10,
+        fleetSize: 35,
+        score: 4.3,
+        status: ProviderStatus.APPROVED,
+        createdAt: new Date()
+      },
+      {
+        id: 5,
+        userId: 5,
+        companyName: 'Fletes Rápidos',
+        rfc: 'FRA111222333',
+        contactPerson: 'Javier Ortiz',
+        email: 'javier@fletesrapidos.com',
+        phone: '+52 555 6666 777',
+        serviceAreas: ['North', 'East'],
+        vehicleTypes: ['Dry Van', 'Container'],
+        certifications: ['ISO9001'],
+        insuranceProvider: 'HDI Seguros',
+        yearsInBusiness: 6,
+        fleetSize: 22,
+        score: 3.8,
+        status: ProviderStatus.APPROVED,
+        createdAt: new Date()
+      }
+    ]
   });
 
   // Accept bid mutation
@@ -213,7 +315,7 @@ export default function ReviewBids() {
         transitTime: 3,
         transitTimeUnit: 'days',
         availability: 'Confirmed - Available as requested',
-        notes: 'We can handle this shipment with our standard fleet.',
+        notes: 'Podemos manejar este envío con nuestra flota estándar. Contamos con seguro incluido y rastreo en tiempo real.',
         validUntil: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
         status: BidStatus.PENDING,
         createdAt: new Date()
@@ -227,7 +329,7 @@ export default function ReviewBids() {
         transitTime: 4,
         transitTimeUnit: 'days',
         availability: 'Partial - Available with adjustments',
-        notes: 'We can offer a competitive rate but need one extra day for delivery.',
+        notes: 'Ofrecemos la tarifa más competitiva pero necesitamos un día adicional para la entrega. Incluye 2 horas de tiempo de espera sin cargo.',
         validUntil: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
         status: BidStatus.PENDING,
         createdAt: new Date()
@@ -241,8 +343,36 @@ export default function ReviewBids() {
         transitTime: 2,
         transitTimeUnit: 'days',
         availability: 'Confirmed - Available as requested',
-        notes: 'Premium service with express delivery and real-time tracking.',
+        notes: 'Servicio premium con entrega express y seguimiento en tiempo real. Incluye seguro de carga por valor completo.',
         validUntil: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        status: BidStatus.ACCEPTED,
+        createdAt: new Date()
+      },
+      {
+        id: 4,
+        shipmentRequestId: Number(id),
+        providerId: 4,
+        price: 2650,
+        currency: 'USD',
+        transitTime: 3,
+        transitTimeUnit: 'days',
+        availability: 'Confirmed - Available as requested',
+        notes: 'Transporte con certificación OEA y equipo especializado para manejo seguro de la carga.',
+        validUntil: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000),
+        status: BidStatus.REJECTED,
+        createdAt: new Date()
+      },
+      {
+        id: 5,
+        shipmentRequestId: Number(id),
+        providerId: 5,
+        price: 2900,
+        currency: 'USD',
+        transitTime: 2,
+        transitTimeUnit: 'days',
+        availability: 'Confirmed - Available as requested',
+        notes: 'Ofrecemos servicio premium con vehículos nuevos y conductores certificados. Garantía de entrega a tiempo.',
+        validUntil: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // Expired
         status: BidStatus.PENDING,
         createdAt: new Date()
       }
@@ -356,7 +486,13 @@ export default function ReviewBids() {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center space-x-3">
-                                <Avatar className={`h-8 w-8 bg-${provider?.companyName === 'Transportes Fast' ? 'primary' : (provider?.companyName === 'EcoTransport' ? 'green-600' : 'purple-600')} text-white`}>
+                                <Avatar className={`h-8 w-8 ${
+                                  provider?.companyName === 'Transportes Fast' ? 'bg-blue-600' : 
+                                  provider?.companyName === 'EcoTransport' ? 'bg-green-600' : 
+                                  provider?.companyName === 'LogiMex Premium' ? 'bg-purple-600' :
+                                  provider?.companyName === 'Transportadora Mexicana' ? 'bg-amber-600' :
+                                  'bg-slate-600'
+                                } text-white`}>
                                   <AvatarFallback>{provider ? getInitials(provider.companyName) : 'N/A'}</AvatarFallback>
                                 </Avatar>
                                 <div>
