@@ -12,6 +12,7 @@ import SubmitQuote from '@/pages/SubmitQuote';
 import ReviewBids from '@/pages/ReviewBids';
 import InstructionLetter from '@/pages/InstructionLetter';
 import FeedbackForm from '@/pages/FeedbackForm';
+import ActiveRequests from '@/pages/ActiveRequests';
 import NotFound from '@/pages/not-found';
 import Demo from '@/pages/Demo';
 import useUserStore from '@/hooks/useUserRole';
@@ -38,6 +39,7 @@ function Router() {
       <Route path="/provider-registration" component={ProviderRegistration} />
       <Route path="/agent-dashboard" component={AgentDashboard} />
       <Route path="/create-request" component={CreateRequest} />
+      <Route path="/active-requests" component={ActiveRequests} />
       <Route path="/matching-results/:id" component={MatchingResults} />
       <Route path="/provider-dashboard" component={ProviderDashboard} />
       <Route path="/submit-quote/:id" component={SubmitQuote} />
