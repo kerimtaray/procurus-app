@@ -62,8 +62,23 @@ export default function ReviewBids() {
     // Simulating this endpoint which doesn't exist yet
     queryFn: async () => {
       try {
+        // For demo purposes always return dummy data
+        const isDemoMode = true; // We'll always show demo data for now
+        if (isDemoMode) {
+          console.log("Demo mode - returning example bids");
+          return generateDummyBids();
+        }
+        
         const response = await apiRequest('GET', `/api/bids?shipmentRequestId=${id}`);
-        return await response.json();
+        const bidsData = await response.json();
+        
+        // If no real bids exist, use demo data in any case
+        if (!bidsData || bidsData.length === 0) {
+          console.log("No bids found, using example data");
+          return generateDummyBids();
+        }
+        
+        return bidsData;
       } catch (error) {
         console.error('Error fetching bids:', error);
         // Return dummy data for demo
@@ -86,9 +101,9 @@ export default function ReviewBids() {
         contactPerson: 'Carlos Rodriguez',
         email: 'carlos@transportesfast.com',
         phone: '+52 555 1234 567',
-        serviceAreas: ['North', 'Central'],
-        vehicleTypes: ['Dry Van', 'Refrigerated'],
-        certifications: ['ISO9001', 'CTPAT'],
+        serviceAreas: [ServiceArea.NORTH, ServiceArea.CENTRAL],
+        vehicleTypes: [VehicleType.DRY_VAN, VehicleType.REFRIGERATED],
+        certifications: [CertificationType.ISO9001, CertificationType.CTPAT],
         insuranceProvider: 'Seguros GNP',
         yearsInBusiness: 12,
         fleetSize: 45,
@@ -104,9 +119,9 @@ export default function ReviewBids() {
         contactPerson: 'Ana Martinez',
         email: 'ana@ecotransport.mx',
         phone: '+52 555 9876 543',
-        serviceAreas: ['Nationwide'],
-        vehicleTypes: ['Container', 'Flatbed'],
-        certifications: ['ISO14001'],
+        serviceAreas: [ServiceArea.NATIONWIDE],
+        vehicleTypes: [VehicleType.CONTAINER, VehicleType.FLATBED],
+        certifications: [CertificationType.ISO14001],
         insuranceProvider: 'Qualitas Seguros',
         yearsInBusiness: 8,
         fleetSize: 28,
@@ -122,9 +137,9 @@ export default function ReviewBids() {
         contactPerson: 'Roberto Gomez',
         email: 'roberto@logimex.com.mx',
         phone: '+52 555 4444 333',
-        serviceAreas: ['Central', 'South'],
-        vehicleTypes: ['Tanker', 'Dry Van'],
-        certifications: ['OEA', 'ISO9001'],
+        serviceAreas: [ServiceArea.CENTRAL, ServiceArea.SOUTH],
+        vehicleTypes: [VehicleType.TANKER, VehicleType.DRY_VAN],
+        certifications: [CertificationType.OEA, CertificationType.ISO9001],
         insuranceProvider: 'AXA Seguros',
         yearsInBusiness: 15,
         fleetSize: 60,
@@ -140,9 +155,9 @@ export default function ReviewBids() {
         contactPerson: 'Gabriela Sanchez',
         email: 'gabi@transmex.mx',
         phone: '+52 555 2222 111',
-        serviceAreas: ['East', 'West'],
-        vehicleTypes: ['Flatbed', 'Container'],
-        certifications: ['CTPAT'],
+        serviceAreas: [ServiceArea.EAST, ServiceArea.WEST],
+        vehicleTypes: [VehicleType.FLATBED, VehicleType.CONTAINER],
+        certifications: [CertificationType.CTPAT],
         insuranceProvider: 'Mapfre',
         yearsInBusiness: 10,
         fleetSize: 35,
@@ -158,9 +173,9 @@ export default function ReviewBids() {
         contactPerson: 'Javier Ortiz',
         email: 'javier@fletesrapidos.com',
         phone: '+52 555 6666 777',
-        serviceAreas: ['North', 'East'],
-        vehicleTypes: ['Dry Van', 'Container'],
-        certifications: ['ISO9001'],
+        serviceAreas: [ServiceArea.NORTH, ServiceArea.EAST],
+        vehicleTypes: [VehicleType.DRY_VAN, VehicleType.CONTAINER],
+        certifications: [CertificationType.ISO9001],
         insuranceProvider: 'HDI Seguros',
         yearsInBusiness: 6,
         fleetSize: 22,
@@ -282,8 +297,9 @@ export default function ReviewBids() {
   };
 
   // Get provider details for a bid
-  const getProviderForBid = (bid: Bid) => {
-    return providers?.find(p => p.id === bid.providerId);
+  const getProviderForBid = (bid: Bid): Provider | undefined => {
+    if (!providers) return undefined;
+    return providers.find((p: Provider) => p.id === bid.providerId);
   };
 
   // Get status badge color
