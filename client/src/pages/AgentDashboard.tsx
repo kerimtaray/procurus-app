@@ -133,33 +133,33 @@ export default function AgentDashboard() {
             </Button>
           </div>
           
-          {/* KPI Section */}
+          {/* KPI Section - Métricas enfocadas en procurement */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard
-              title={t.activeRequests}
-              value="12"
+              title={language === 'es' ? 'Cotizaciones Activas' : 'Active Quotes'}
+              value="24"
               icon="clipboard"
               iconColor="blue"
             />
             
             <StatCard
-              title={t.completedShipments}
-              value="48"
-              icon="check"
+              title={language === 'es' ? 'Ganancia Potencial' : 'Potential Profit'}
+              value="$125K"
+              icon="dollar-sign"
               iconColor="green"
             />
             
             <StatCard
-              title={t.avgResponseTime}
-              value="1.8h"
-              icon="clock"
+              title={language === 'es' ? 'Cotiz. por día' : 'Quotes per Day'}
+              value="14.5"
+              icon="activity"
               iconColor="amber"
             />
             
             <StatCard
-              title={t.providerNetwork}
-              value="26"
-              icon="network"
+              title={language === 'es' ? 'Tasa de Conversión' : 'Conversion Rate'}
+              value="48%"
+              icon="trending-up"
               iconColor="purple"
             />
           </div>
@@ -171,10 +171,10 @@ export default function AgentDashboard() {
           
           {/* Recent activity and Top providers sections */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Recent Requests */}
+            {/* Recent Quotes */}
             <Card className="lg:col-span-1">
               <CardHeader className="pb-3 flex flex-row items-center justify-between">
-                <CardTitle>{t.recentRequests}</CardTitle>
+                <CardTitle>{language === 'es' ? 'Cotizaciones Recientes' : 'Recent Quotes'}</CardTitle>
                 <Button variant="ghost" size="sm" className="text-primary flex items-center" onClick={() => setLocation('/active-requests')}>
                   {t.viewAll} <ArrowRightIcon className="ml-1 h-4 w-4" />
                 </Button>

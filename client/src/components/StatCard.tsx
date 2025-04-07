@@ -1,14 +1,15 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { 
-  TruckIcon, CheckCircleIcon, ClockIcon, TruckIcon as TruckIcon2, 
-  BellIcon, StarIcon, ClipboardListIcon
+  TruckIcon, CheckCircleIcon, ClockIcon, NetworkIcon, 
+  BellIcon, StarIcon, ClipboardListIcon, DollarSignIcon,
+  ActivityIcon, TrendingUpIcon
 } from 'lucide-react';
 
 interface StatCardProps {
   title: string;
   value: string | number;
-  icon: 'truck' | 'check' | 'clock' | 'network' | 'bell' | 'star' | 'clipboard';
+  icon: 'truck' | 'check' | 'clock' | 'network' | 'bell' | 'star' | 'clipboard' | 'dollar-sign' | 'activity' | 'trending-up';
   iconColor: 'blue' | 'green' | 'amber' | 'purple';
 }
 
@@ -22,13 +23,19 @@ export default function StatCard({ title, value, icon, iconColor }: StatCardProp
       case 'clock':
         return <ClockIcon className="h-5 w-5" />;
       case 'network':
-        return <TruckIcon2 className="h-5 w-5" />;
+        return <NetworkIcon className="h-5 w-5" />;
       case 'bell':
         return <BellIcon className="h-5 w-5" />;
       case 'star':
         return <StarIcon className="h-5 w-5" />;
       case 'clipboard':
         return <ClipboardListIcon className="h-5 w-5" />;
+      case 'dollar-sign':
+        return <DollarSignIcon className="h-5 w-5" />;
+      case 'activity':
+        return <ActivityIcon className="h-5 w-5" />;
+      case 'trending-up':
+        return <TrendingUpIcon className="h-5 w-5" />;
       default:
         return <ClipboardListIcon className="h-5 w-5" />;
     }
