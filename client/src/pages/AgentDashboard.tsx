@@ -4,24 +4,60 @@ import { useLocation } from 'wouter';
 import Navbar from '@/components/Navbar';
 import StatCard from '@/components/StatCard';
 import RequestSummary from '@/components/RequestSummary';
-import { Card, CardContent } from '@/components/ui/card';
+import DashboardSummary from '@/components/DashboardSummary';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ShipmentRequest, Provider } from '@shared/schema';
+import { TrendingUpIcon, TrendingDownIcon, ArrowRightIcon, PlusIcon } from 'lucide-react';
+import { ShipmentRequest, Provider, UserRole } from '@shared/schema';
 import useUserStore from '@/hooks/useUserRole';
+import useLanguage from '@/hooks/useLanguage';
 
 export default function AgentDashboard() {
   const [_, setLocation] = useLocation();
-  const { username, role } = useUserStore();
+  const { username, role, companyName } = useUserStore();
+  const { language } = useLanguage();
+  
+  // Define a type for providers with nullable fields
+  type ProviderWithNullableFields = Provider & {
+    onTimeRate: number | null;
+    responseTime: number | null;
+    completedJobs: number | null;
+  };
   
   // Query top providers
-  const { data: topProviders, isLoading: loadingProviders } = useQuery<Provider[]>({
+  const { data: topProviders, isLoading: loadingProviders } = useQuery<ProviderWithNullableFields[]>({
     queryKey: ['/api/providers/top'],
   });
   
-  // Query recent requests (mock data for now)
+  // Query recent requests
   const { data: recentRequests, isLoading: loadingRequests } = useQuery<ShipmentRequest[]>({
     queryKey: ['/api/shipment-requests'],
   });
+  
+  // Translations
+  const t = {
+    agentDashboard: language === 'es' ? 'Panel de Control - Agente' : 'Agent Dashboard',
+    newRequest: language === 'es' ? 'Nueva Solicitud' : 'New Request',
+    welcome: language === 'es' ? 'Bienvenido,' : 'Welcome,',
+    statistics: language === 'es' ? 'Estadísticas' : 'Statistics',
+    activeRequests: language === 'es' ? 'Solicitudes Activas' : 'Active Requests',
+    completedShipments: language === 'es' ? 'Envíos Completados' : 'Completed Shipments',
+    avgResponseTime: language === 'es' ? 'Tiempo Prom. Respuesta' : 'Avg. Response Time',
+    providerNetwork: language === 'es' ? 'Red de Proveedores' : 'Provider Network',
+    topProviders: language === 'es' ? 'Mejores Proveedores' : 'Top Performing Providers',
+    provider: language === 'es' ? 'Proveedor' : 'Provider',
+    onTimeRate: language === 'es' ? 'Puntualidad' : 'On-Time Rate',
+    responseTime: language === 'es' ? 'Tiempo Respuesta' : 'Response Time',
+    completedJobs: language === 'es' ? 'Trabajos Completados' : 'Completed Jobs',
+    rating: language === 'es' ? 'Calificación' : 'Rating',
+    recentRequests: language === 'es' ? 'Solicitudes Recientes' : 'Recent Requests',
+    noRequests: language === 'es' ? 'No se encontraron solicitudes recientes.' : 'No recent requests found.',
+    loadingRequests: language === 'es' ? 'Cargando solicitudes...' : 'Loading requests...',
+    loadingProviders: language === 'es' ? 'Cargando proveedores...' : 'Loading providers...',
+    viewAll: language === 'es' ? 'Ver todos' : 'View all',
+    actions: language === 'es' ? 'Acciones' : 'Actions'
+  };
   
   // Get initials for provider avatar
   const getInitials = (name: string) => {
@@ -77,120 +113,79 @@ export default function AgentDashboard() {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <div className="flex-1 bg-slate-100">
-        <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="flex-1 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          {/* Header section with welcome and new request button */}
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Agent Dashboard</h1>
-            <button
+            <div>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent">
+                {t.agentDashboard}
+              </h1>
+              <p className="text-gray-600 mt-1">{t.welcome} <span className="font-semibold">{companyName || username}</span></p>
+            </div>
+            
+            <Button
               onClick={handleCreateRequest}
-              className="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-md flex items-center space-x-2 shadow-md transform hover:scale-105 transition-transform"
+              className="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-md flex items-center space-x-2 shadow-md transform hover:scale-105 transition-transform"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-              </svg>
-              <span>Nueva Solicitud</span>
-            </button>
+              <PlusIcon className="h-5 w-5" />
+              <span>{t.newRequest}</span>
+            </Button>
           </div>
           
           {/* KPI Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <StatCard
-              title="Active Requests"
+              title={t.activeRequests}
               value="12"
               icon="clipboard"
               iconColor="blue"
             />
             
             <StatCard
-              title="Completed Shipments"
+              title={t.completedShipments}
               value="48"
               icon="check"
               iconColor="green"
             />
             
             <StatCard
-              title="Avg. Response Time"
+              title={t.avgResponseTime}
               value="1.8h"
               icon="clock"
               iconColor="amber"
             />
             
             <StatCard
-              title="Provider Network"
+              title={t.providerNetwork}
               value="26"
               icon="network"
               iconColor="purple"
             />
           </div>
           
-          {/* Top Providers Section */}
-          <Card className="mb-8">
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">Top Performing Providers</h2>
-              <div className="overflow-x-auto">
-                <table className="min-w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">On-Time Rate</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Response Time</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completed Jobs</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {loadingProviders ? (
-                      <tr>
-                        <td colSpan={5} className="px-4 py-3 text-center text-sm text-gray-500">
-                          Loading providers...
-                        </td>
-                      </tr>
-                    ) : (
-                      topProviders?.map((provider, index) => (
-                        <tr key={provider.id}>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="flex items-center">
-                              <Avatar className={`h-8 w-8 ${getAvatarColor(index)} mr-2`}>
-                                <AvatarFallback>{getInitials(provider.companyName)}</AvatarFallback>
-                              </Avatar>
-                              <div>
-                                <div className="text-sm font-medium text-gray-900">{provider.companyName}</div>
-                                <div className="text-xs text-gray-500">{provider.serviceAreas.join(', ')}</div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{provider.onTimeRate}%</div>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{provider.responseTime}h</div>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{provider.completedJobs}</div>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            {renderStarRating(provider.score || 0)}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Dashboard Charts Summary */}
+          <div className="mb-8">
+            <DashboardSummary role={UserRole.AGENT} />
+          </div>
           
-          {/* Activity & Metrics */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent activity and Top providers sections */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Recent Requests */}
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Requests</h2>
+            <Card className="lg:col-span-1">
+              <CardHeader className="pb-3 flex flex-row items-center justify-between">
+                <CardTitle>{t.recentRequests}</CardTitle>
+                <Button variant="ghost" size="sm" className="text-primary flex items-center" onClick={() => setLocation('/active-requests')}>
+                  {t.viewAll} <ArrowRightIcon className="ml-1 h-4 w-4" />
+                </Button>
+              </CardHeader>
+              
+              <CardContent>
                 <div className="space-y-4">
                   {loadingRequests ? (
-                    <div className="text-sm text-gray-500">Loading requests...</div>
+                    <div className="text-sm text-gray-500">{t.loadingRequests}</div>
                   ) : recentRequests && recentRequests.length > 0 ? (
-                    recentRequests.map((request) => (
+                    recentRequests.slice(0, 3).map((request) => (
                       <RequestSummary 
                         key={request.id} 
                         request={request} 
@@ -199,81 +194,79 @@ export default function AgentDashboard() {
                       />
                     ))
                   ) : (
-                    <div className="text-sm text-gray-500">No recent requests found.</div>
+                    <div className="text-sm text-gray-500">{t.noRequests}</div>
                   )}
                 </div>
                 <div className="mt-4 text-center">
-                  <button 
+                  <Button 
                     onClick={handleCreateRequest}
-                    className="flex items-center justify-center mx-auto px-4 py-2 bg-primary/10 text-primary font-medium rounded-md hover:bg-primary/20 transition-colors"
+                    variant="outline"
+                    className="w-full flex items-center justify-center mx-auto"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-                    </svg>
-                    Nueva Solicitud
-                  </button>
+                    <PlusIcon className="h-4 w-4 mr-1" />
+                    {t.newRequest}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
             
-            {/* Performance Metrics */}
-            <Card>
-              <CardContent className="p-6">
-                <h2 className="text-lg font-semibold text-gray-800 mb-4">Performance Metrics</h2>
-                <div className="space-y-6">
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm font-medium text-gray-700">Request Fulfillment Rate</span>
-                      <span className="text-sm text-gray-600">85%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div className="bg-primary h-2.5 rounded-full" style={{ width: '85%' }}></div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm font-medium text-gray-700">Provider Response Rate</span>
-                      <span className="text-sm text-gray-600">92%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div className="bg-green-500 h-2.5 rounded-full" style={{ width: '92%' }}></div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm font-medium text-gray-700">On-Time Delivery</span>
-                      <span className="text-sm text-gray-600">78%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div className="bg-amber-500 h-2.5 rounded-full" style={{ width: '78%' }}></div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-sm font-medium text-gray-700">Cost Efficiency</span>
-                      <span className="text-sm text-gray-600">68%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5">
-                      <div className="bg-purple-500 h-2.5 rounded-full" style={{ width: '68%' }}></div>
-                    </div>
-                  </div>
-                  
-                  <div className="pt-4">
-                    <h3 className="text-sm font-medium text-gray-700 mb-2">Most Active Regions</h3>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="bg-gray-50 p-3 rounded-md">
-                        <div className="text-lg font-semibold text-gray-800">Central</div>
-                        <div className="text-sm text-gray-500">42% of shipments</div>
-                      </div>
-                      <div className="bg-gray-50 p-3 rounded-md">
-                        <div className="text-lg font-semibold text-gray-800">North</div>
-                        <div className="text-sm text-gray-500">31% of shipments</div>
-                      </div>
-                    </div>
-                  </div>
+            {/* Top Providers Section */}
+            <Card className="lg:col-span-2">
+              <CardHeader className="pb-3">
+                <CardTitle>{t.topProviders}</CardTitle>
+              </CardHeader>
+              
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.provider}</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.onTimeRate}</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.responseTime}</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{t.rating}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {loadingProviders ? (
+                        <tr>
+                          <td colSpan={4} className="px-4 py-3 text-center text-sm text-gray-500">
+                            {t.loadingProviders}
+                          </td>
+                        </tr>
+                      ) : (
+                        topProviders?.map((provider, index) => (
+                          <tr key={provider.id} className="hover:bg-gray-50">
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <Avatar className={`h-8 w-8 ${getAvatarColor(index)} mr-2`}>
+                                  <AvatarFallback>{getInitials(provider.companyName)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900">{provider.companyName}</div>
+                                  <div className="text-xs text-gray-500">{provider.serviceAreas.join(', ')}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="flex items-center">
+                                <div className={`mr-2 ${(provider.onTimeRate || 0) > 90 ? 'text-green-600' : 'text-amber-600'}`}>
+                                  {(provider.onTimeRate || 0) > 90 ? <TrendingUpIcon className="h-4 w-4" /> : <TrendingDownIcon className="h-4 w-4" />}
+                                </div>
+                                <div className="text-sm text-gray-900">{provider.onTimeRate || 0}%</div>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              <div className="text-sm text-gray-900">{provider.responseTime || 0}h</div>
+                            </td>
+                            <td className="px-4 py-3 whitespace-nowrap">
+                              {renderStarRating(provider.score || 0)}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </CardContent>
             </Card>
