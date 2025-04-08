@@ -2,11 +2,9 @@ import React from 'react';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import Navbar from '@/components/Navbar';
-import QuotesTable from '@/components/QuotesTable';
+import BookingsTable from '@/components/BookingsTable';
 import StatCard from '@/components/StatCard';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserRole, ShipmentRequest } from '@shared/schema';
 import useUserStore from '@/hooks/useUserRole';
 import useLanguage from '@/hooks/useLanguage';
@@ -29,27 +27,24 @@ export default function AgentDashboard() {
     createRequest: language === 'es' ? 'Crear Solicitud' : 'Create Request',
     dashboard: language === 'es' ? 'Panel' : 'Dashboard',
     analytics: language === 'es' ? 'Ver Análisis' : 'View Analytics',
-    summary: language === 'es' ? 'Resumen' : 'Summary',
-    activeQuotes: language === 'es' ? 'Cotizaciones Activas' : 'Active Quotes',
-    recentActivity: language === 'es' ? 'Actividad Reciente' : 'Recent Activity',
-    totalQuotes: language === 'es' ? 'Total de Cotizaciones' : 'Total Quotes',
-    pendingQuotes: language === 'es' ? 'Cotizaciones Pendientes' : 'Pending Quotes',
-    approvedQuotes: language === 'es' ? 'Cotizaciones Aprobadas' : 'Approved Quotes',
+    totalBookings: language === 'es' ? 'Total de Solicitudes' : 'Total Bookings',
+    pendingBookings: language === 'es' ? 'Solicitudes Pendientes' : 'Pending Bookings',
+    assignedBookings: language === 'es' ? 'Solicitudes Asignadas' : 'Assigned Bookings',
     potentialProfit: language === 'es' ? 'Ganancia Potencial' : 'Potential Profit',
-    conversionRate: language === 'es' ? 'Tasa de Conversión' : 'Conversion Rate',
-    avgResponseTime: language === 'es' ? 'Tiempo Respuesta Prom.' : 'Avg. Response Time',
+    totalQuotesReceived: language === 'es' ? 'Ofertas Recibidas' : 'Quotes Received',
+    avgQuotesPerBooking: language === 'es' ? 'Prom. Ofertas/Solicitud' : 'Avg. Quotes/Booking',
   };
 
   // Stats calculations
-  const totalQuotes = shipmentRequests.length;
-  const pendingQuotes = shipmentRequests.filter(req => req.status === 'Pending').length;
-  const approvedQuotes = shipmentRequests.filter(req => req.status === 'Assigned').length; // Using 'Assigned' instead of 'Approved'
+  const totalBookings = shipmentRequests.length;
+  const pendingBookings = shipmentRequests.filter(req => req.status === 'Pending').length;
+  const assignedBookings = shipmentRequests.filter(req => req.status === 'Assigned').length;
   
   // For the demo, calculating some metrics with mock data
-  const potentialProfit = shipmentRequests.length * 12000; // Simplified calculation
-  const conversionRate = shipmentRequests.length > 0 ? 
-    Math.round((approvedQuotes / totalQuotes) * 100) : 0;
-  const avgResponseTime = "3.2h";
+  const potentialProfit = totalBookings * 12000; // Simplified calculation
+  const totalQuotesReceived = totalBookings * 3; // Aproximación, idealmente vendría de la API
+  const avgQuotesPerBooking = totalBookings > 0 ? 
+    (totalQuotesReceived / totalBookings).toFixed(1) : "0";
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -89,20 +84,20 @@ export default function AgentDashboard() {
           {/* Key Performance Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <StatCard 
-              title={t.totalQuotes} 
-              value={totalQuotes} 
+              title={t.totalBookings} 
+              value={totalBookings} 
               icon="clipboard" 
               iconColor="blue" 
             />
             <StatCard 
-              title={t.pendingQuotes} 
-              value={pendingQuotes} 
+              title={t.pendingBookings} 
+              value={pendingBookings} 
               icon="clock" 
               iconColor="amber" 
             />
             <StatCard 
-              title={t.approvedQuotes} 
-              value={approvedQuotes} 
+              title={t.assignedBookings} 
+              value={assignedBookings} 
               icon="check" 
               iconColor="green" 
             />
@@ -113,22 +108,25 @@ export default function AgentDashboard() {
               iconColor="green" 
             />
             <StatCard 
-              title={t.conversionRate} 
-              value={`${conversionRate}%`} 
+              title={t.totalQuotesReceived} 
+              value={totalQuotesReceived} 
               icon="activity" 
               iconColor="purple" 
             />
             <StatCard 
-              title={t.avgResponseTime} 
-              value={avgResponseTime} 
+              title={t.avgQuotesPerBooking} 
+              value={avgQuotesPerBooking} 
               icon="trending-up" 
               iconColor="blue" 
             />
           </div>
           
-          {/* CRM-style Quotes Table */}
+          {/* CRM-style Bookings Table */}
           <div>
-            <QuotesTable loading={isLoading} />
+            <BookingsTable 
+              data={shipmentRequests} 
+              loading={isLoading} 
+            />
           </div>
         </div>
       </div>
