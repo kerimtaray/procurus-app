@@ -17,7 +17,8 @@ import {
 } from 'lucide-react';
 import { ShipmentRequest, ShipmentRequestStatus } from '@shared/schema';
 import { formatDate } from '@/lib/utils';
-import useLanguage from '@/hooks/useLanguage';
+import useLanguageStore from '@/hooks/useLanguage';
+import { translations } from '@/lib/translations';
 
 // Datos extendidos para shipment requests
 interface BookingData {
@@ -42,47 +43,11 @@ interface BookingsTableProps {
 
 export default function BookingsTable({ data = [], loading = false }: BookingsTableProps) {
   const [_, setLocation] = useLocation();
-  const { language } = useLanguage();
+  const { language } = useLanguageStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortBy, setSortBy] = useState('date');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-
-  // Traducción
-  const t = {
-    bookings: language === 'es' ? 'Solicitudes de Viaje' : 'Bookings',
-    search: language === 'es' ? 'Buscar...' : 'Search...',
-    status: language === 'es' ? 'Estado' : 'Status',
-    all: language === 'es' ? 'Todos' : 'All',
-    pending: language === 'es' ? 'Pendiente' : 'Pending',
-    assigned: language === 'es' ? 'Asignada' : 'Assigned',
-    inTransit: language === 'es' ? 'En Tránsito' : 'In Transit',
-    completed: language === 'es' ? 'Completada' : 'Completed',
-    cancelled: language === 'es' ? 'Cancelada' : 'Cancelled',
-    sortBy: language === 'es' ? 'Ordenar por' : 'Sort by',
-    date: language === 'es' ? 'Fecha' : 'Date',
-    client: language === 'es' ? 'Cliente' : 'Client',
-    offers: language === 'es' ? 'Ofertas' : 'Offers',
-    profit: language === 'es' ? 'Ganancia' : 'Profit',
-    urgency: language === 'es' ? 'Urgencia' : 'Urgency',
-    id: language === 'es' ? 'ID' : 'ID',
-    requestId: language === 'es' ? 'ID de Solicitud' : 'Request ID',
-    providersContacted: language === 'es' ? 'Prov. Contactados' : 'Prov. Contacted',
-    quotesReceived: language === 'es' ? 'Ofertas Recibidas' : 'Quotes Received',
-    bestOffer: language === 'es' ? 'Mejor Oferta' : 'Best Offer',
-    potentialProfit: language === 'es' ? 'Ganancia Potencial' : 'Potential Profit',
-    action: language === 'es' ? 'Acción' : 'Action',
-    viewQuotes: language === 'es' ? 'Ver Ofertas' : 'View Quotes',
-    noResults: language === 'es' ? 'No se encontraron solicitudes' : 'No bookings found',
-    loading: language === 'es' ? 'Cargando solicitudes...' : 'Loading bookings...',
-    route: language === 'es' ? 'Ruta' : 'Route',
-    clearFilters: language === 'es' ? 'Limpiar filtros' : 'Clear filters',
-    filters: language === 'es' ? 'Filtros' : 'Filters',
-    high: language === 'es' ? 'Alta' : 'High',
-    medium: language === 'es' ? 'Media' : 'Medium',
-    low: language === 'es' ? 'Baja' : 'Low',
-    noQuotes: language === 'es' ? 'Sin ofertas' : 'No quotes',
-  };
 
   // Función para transformar datos de solicitudes a formato de BookingData
   const transformRequestsToBookings = (requests: ShipmentRequest[]): BookingData[] => {
@@ -302,7 +267,7 @@ export default function BookingsTable({ data = [], loading = false }: BookingsTa
     <Card className="shadow-sm">
       <CardHeader className="pb-3">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <CardTitle>{t.bookings}</CardTitle>
+          <CardTitle>{translations.bookings[language]}</CardTitle>
           
           <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
             {/* Search */}
@@ -310,7 +275,7 @@ export default function BookingsTable({ data = [], loading = false }: BookingsTa
               <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
               <Input
                 type="text"
-                placeholder={t.search}
+                placeholder={translations.search[language]}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-8 w-full"
@@ -320,29 +285,29 @@ export default function BookingsTable({ data = [], loading = false }: BookingsTa
             {/* Status Filter */}
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full md:w-36">
-                <SelectValue placeholder={t.status} />
+                <SelectValue placeholder={translations.status[language]} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t.all}</SelectItem>
-                <SelectItem value="pending">{t.pending}</SelectItem>
-                <SelectItem value="assigned">{t.assigned}</SelectItem>
-                <SelectItem value="in transit">{t.inTransit}</SelectItem>
-                <SelectItem value="completed">{t.completed}</SelectItem>
-                <SelectItem value="cancelled">{t.cancelled}</SelectItem>
+                <SelectItem value="all">{translations.all[language]}</SelectItem>
+                <SelectItem value="pending">{translations.pending[language]}</SelectItem>
+                <SelectItem value="assigned">{translations.assigned[language]}</SelectItem>
+                <SelectItem value="in transit">{translations.inTransit[language]}</SelectItem>
+                <SelectItem value="completed">{translations.completed[language]}</SelectItem>
+                <SelectItem value="cancelled">{translations.cancelled[language]}</SelectItem>
               </SelectContent>
             </Select>
             
             {/* Sort By */}
             <Select value={sortBy} onValueChange={handleSortChange}>
               <SelectTrigger className="w-full md:w-40">
-                <SelectValue placeholder={t.sortBy} />
+                <SelectValue placeholder={translations.sortBy[language]} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="date">{t.date}</SelectItem>
-                <SelectItem value="client">{t.client}</SelectItem>
-                <SelectItem value="offers">{t.offers}</SelectItem>
-                <SelectItem value="profit">{t.profit}</SelectItem>
-                <SelectItem value="urgency">{t.urgency}</SelectItem>
+                <SelectItem value="date">{translations.date[language]}</SelectItem>
+                <SelectItem value="client">{translations.client[language]}</SelectItem>
+                <SelectItem value="offers">{translations.offers[language]}</SelectItem>
+                <SelectItem value="profit">{translations.profit[language]}</SelectItem>
+                <SelectItem value="urgency">{translations.urgency[language]}</SelectItem>
               </SelectContent>
             </Select>
             
@@ -351,7 +316,7 @@ export default function BookingsTable({ data = [], loading = false }: BookingsTa
               variant="outline" 
               size="icon" 
               onClick={clearFilters}
-              title={t.clearFilters}
+              title={translations.clearFilters[language]}
               className="h-10 w-10"
             >
               <FilterIcon className="h-4 w-4" />
@@ -367,29 +332,29 @@ export default function BookingsTable({ data = [], loading = false }: BookingsTa
               <TableRow>
                 <TableHead className="w-[100px]">
                   <div className="flex items-center gap-1">
-                    {t.urgency}
+                    {translations.urgency[language]}
                   </div>
                 </TableHead>
-                <TableHead>{t.requestId}</TableHead>
-                <TableHead>{t.client}</TableHead>
-                <TableHead>{t.route}</TableHead>
-                <TableHead>{t.status}</TableHead>
-                <TableHead>{t.providersContacted}</TableHead>
-                <TableHead>{t.quotesReceived}</TableHead>
-                <TableHead>{t.bestOffer}</TableHead>
-                <TableHead>{t.potentialProfit}</TableHead>
-                <TableHead className="text-right">{t.action}</TableHead>
+                <TableHead>{translations.requestId[language]}</TableHead>
+                <TableHead>{translations.client[language]}</TableHead>
+                <TableHead>{translations.route[language]}</TableHead>
+                <TableHead>{translations.status[language]}</TableHead>
+                <TableHead>{translations.providersContacted[language]}</TableHead>
+                <TableHead>{translations.quotesReceived[language]}</TableHead>
+                <TableHead>{translations.bestOffer[language]}</TableHead>
+                <TableHead>{translations.potentialProfit[language]}</TableHead>
+                <TableHead className="text-right">{translations.action[language]}</TableHead>
               </TableRow>
             </TableHeader>
             
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-8 text-gray-500">{t.loading}</TableCell>
+                  <TableCell colSpan={10} className="text-center py-8 text-gray-500">{translations.loading[language]}</TableCell>
                 </TableRow>
               ) : filteredBookings.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-8 text-gray-500">{t.noResults}</TableCell>
+                  <TableCell colSpan={10} className="text-center py-8 text-gray-500">{translations.noResults[language]}</TableCell>
                 </TableRow>
               ) : (
                 filteredBookings.map((booking) => (
@@ -417,7 +382,7 @@ export default function BookingsTable({ data = [], loading = false }: BookingsTa
                     <TableCell>
                       {booking.bestOffer 
                         ? <span className="font-semibold">${booking.bestOffer.toLocaleString()}</span>
-                        : <span className="text-gray-500 text-xs">{t.noQuotes}</span>
+                        : <span className="text-gray-500 text-xs">{translations.noQuotes[language]}</span>
                       }
                     </TableCell>
                     <TableCell>
@@ -433,7 +398,7 @@ export default function BookingsTable({ data = [], loading = false }: BookingsTa
                         className="text-xs"
                       >
                         <DollarSignIcon className="h-3.5 w-3.5 mr-1" />
-                        {t.viewQuotes}
+                        {translations.viewQuotes[language]}
                       </Button>
                     </TableCell>
                   </TableRow>

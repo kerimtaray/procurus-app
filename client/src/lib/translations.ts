@@ -24,7 +24,45 @@ type TranslationKey =
   | 'platform'
   | 'selectLanguage'
   | 'english'
-  | 'spanish';
+  | 'spanish'
+  // Dashboard y booking terms
+  | 'welcome'
+  | 'bookings'
+  | 'totalBookings'
+  | 'pendingBookings'
+  | 'assignedBookings'
+  | 'potentialProfit'
+  | 'totalQuotesReceived'
+  | 'avgQuotesPerBooking'
+  | 'viewAnalytics'
+  | 'search'
+  | 'status'
+  | 'all'
+  | 'pending'
+  | 'assigned'
+  | 'inTransit'
+  | 'completed'
+  | 'cancelled'
+  | 'sortBy'
+  | 'date'
+  | 'client'
+  | 'offers'
+  | 'profit'
+  | 'urgency'
+  | 'high'
+  | 'medium'
+  | 'low'
+  | 'requestId'
+  | 'providersContacted'
+  | 'quotesReceived'
+  | 'bestOffer'
+  | 'route'
+  | 'action'
+  | 'viewQuotes'
+  | 'noResults'
+  | 'loading'
+  | 'noQuotes'
+  | 'clearFilters';
 
 type Translations = {
   [key in TranslationKey]: {
@@ -129,6 +167,155 @@ export const translations: Translations = {
   spanish: {
     en: 'Spanish',
     es: 'Español'
+  },
+  // Dashboard y booking terms
+  welcome: {
+    en: 'Welcome',
+    es: 'Bienvenido'
+  },
+  bookings: {
+    en: 'Bookings',
+    es: 'Solicitudes de Viaje'
+  },
+  totalBookings: {
+    en: 'Total Bookings',
+    es: 'Total de Solicitudes'
+  },
+  pendingBookings: {
+    en: 'Pending Bookings',
+    es: 'Solicitudes Pendientes'
+  },
+  assignedBookings: {
+    en: 'Assigned Bookings',
+    es: 'Solicitudes Asignadas'
+  },
+  potentialProfit: {
+    en: 'Potential Profit',
+    es: 'Ganancia Potencial'
+  },
+  totalQuotesReceived: {
+    en: 'Quotes Received',
+    es: 'Ofertas Recibidas'
+  },
+  avgQuotesPerBooking: {
+    en: 'Avg. Quotes/Booking',
+    es: 'Prom. Ofertas/Solicitud'
+  },
+  viewAnalytics: {
+    en: 'View Analytics',
+    es: 'Ver Análisis'
+  },
+  search: {
+    en: 'Search...',
+    es: 'Buscar...'
+  },
+  status: {
+    en: 'Status',
+    es: 'Estado'
+  },
+  all: {
+    en: 'All',
+    es: 'Todos'
+  },
+  pending: {
+    en: 'Pending',
+    es: 'Pendiente'
+  },
+  assigned: {
+    en: 'Assigned',
+    es: 'Asignada'
+  },
+  inTransit: {
+    en: 'In Transit',
+    es: 'En Tránsito'
+  },
+  completed: {
+    en: 'Completed',
+    es: 'Completada'
+  },
+  cancelled: {
+    en: 'Cancelled',
+    es: 'Cancelada'
+  },
+  sortBy: {
+    en: 'Sort by',
+    es: 'Ordenar por'
+  },
+  date: {
+    en: 'Date',
+    es: 'Fecha'
+  },
+  client: {
+    en: 'Client',
+    es: 'Cliente'
+  },
+  offers: {
+    en: 'Offers',
+    es: 'Ofertas'
+  },
+  profit: {
+    en: 'Profit',
+    es: 'Ganancia'
+  },
+  urgency: {
+    en: 'Urgency',
+    es: 'Urgencia'
+  },
+  high: {
+    en: 'High',
+    es: 'Alta'
+  },
+  medium: {
+    en: 'Medium',
+    es: 'Media'
+  },
+  low: {
+    en: 'Low',
+    es: 'Baja'
+  },
+  requestId: {
+    en: 'Request ID',
+    es: 'ID de Solicitud'
+  },
+  providersContacted: {
+    en: 'Prov. Contacted',
+    es: 'Prov. Contactados'
+  },
+  quotesReceived: {
+    en: 'Quotes Received',
+    es: 'Ofertas Recibidas'
+  },
+  bestOffer: {
+    en: 'Best Offer',
+    es: 'Mejor Oferta'
+  },
+  route: {
+    en: 'Route',
+    es: 'Ruta'
+  },
+  action: {
+    en: 'Action',
+    es: 'Acción'
+  },
+  viewQuotes: {
+    en: 'View Quotes',
+    es: 'Ver Ofertas'
+  },
+  noResults: {
+    en: 'No bookings found',
+    es: 'No se encontraron solicitudes'
+  },
+  loading: {
+    en: 'Loading bookings...',
+    es: 'Cargando solicitudes...'
+  },
+  noQuotes: {
+    en: 'No quotes',
+    es: 'Sin ofertas'
+  },
+  clearFilters: {
+    en: 'Clear filters',
+    es: 'Limpiar filtros'
   }
 };
 
