@@ -8,6 +8,7 @@ import AgentDashboard from '@/pages/AgentDashboard';
 import CreateRequest from '@/pages/CreateRequest';
 import MatchingResults from '@/pages/MatchingResults';
 import ProviderDashboard from '@/pages/ProviderDashboard';
+import ProviderActiveJobs from '@/pages/ProviderActiveJobs';
 import SubmitQuote from '@/pages/SubmitQuote';
 import ReviewBids from '@/pages/ReviewBids';
 import InstructionLetter from '@/pages/InstructionLetter';
@@ -44,6 +45,7 @@ function Router() {
       <Route path="/active-requests" component={ActiveRequests} />
       <Route path="/matching-results/:id" component={MatchingResults} />
       <Route path="/provider-dashboard" component={ProviderDashboard} />
+      <Route path="/provider-active-jobs" component={ProviderActiveJobs} />
       <Route path="/submit-quote/:id" component={SubmitQuote} />
       <Route path="/review-bids/:id" component={ReviewBids} />
       <Route path="/client-proposal/:id" component={ClientProposal} />

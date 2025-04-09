@@ -176,7 +176,12 @@ export default function ProviderDashboard() {
                     </div>
                   ))}
                 </div>
-                <Button variant="ghost" size="sm" className="w-full mt-2 text-primary flex items-center justify-center" onClick={() => {}}>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full mt-2 text-primary flex items-center justify-center" 
+                  onClick={() => setLocation('/provider-active-jobs')}
+                >
                   {t.viewAll} <ArrowRightIcon className="ml-1 h-4 w-4" />
                 </Button>
               </CardContent>
@@ -340,7 +345,12 @@ export default function ProviderDashboard() {
                           </Badge>
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap">
-                          <Button variant="ghost" size="sm" className="text-primary hover:text-blue-700">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-primary hover:text-blue-700"
+                            onClick={() => setLocation('/provider-active-jobs')}
+                          >
                             <EyeIcon className="h-4 w-4 mr-1" />
                             {t.view}
                           </Button>
