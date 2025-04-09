@@ -37,17 +37,25 @@ import {
 import useUserStore from '@/hooks/useUserRole';
 
 // Extend the insert schema for form validation
-const formSchema = insertShipmentRequestSchema.extend({
+// La clave aquí es que las fechas sean tratadas como strings en TODA la aplicación
+const formSchema = z.object({
+  requestorName: z.string().min(1),
+  company: z.string().min(1),
+  cargoType: z.nativeEnum(CargoType),
+  weight: z.number(),
+  volume: z.number().optional().nullable(),
+  packagingType: z.nativeEnum(PackagingType).optional().nullable(),
+  specialRequirements: z.string().optional().nullable().default(""),
+  pickupAddress: z.string().min(1),
+  deliveryAddress: z.string().min(1),
+  // String puro, sin transformaciones
   pickupDate: z.string().min(1, { message: "Pickup date is required" }),
   deliveryDate: z.string().min(1, { message: "Delivery date is required" }),
-  additionalEquipment: z.array(z.nativeEnum(AdditionalEquipment)).optional().nullable().default([]),
-  packagingType: z.nativeEnum(PackagingType).optional().nullable(),
-  volume: z.number().optional().nullable(),
   pickupContact: z.string().optional().nullable().default(""),
   deliveryContact: z.string().optional().nullable().default(""),
-  specialRequirements: z.string().optional().nullable().default(""),
-  vehicleType: z.nativeEnum(VehicleType).optional().nullable(),
+  vehicleType: z.nativeEnum(VehicleType),
   vehicleSize: z.string().optional().nullable().default(""),
+  additionalEquipment: z.array(z.nativeEnum(AdditionalEquipment)).optional().nullable().default([]),
 });
 
 type ShipmentRequestFormValues = z.infer<typeof formSchema>;

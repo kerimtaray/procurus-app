@@ -180,9 +180,9 @@ export const insertShipmentRequestSchema = z.object({
   specialRequirements: z.string().optional(),
   pickupAddress: z.string(),
   deliveryAddress: z.string(),
-  // Acepta fechas como string pero las convierte a Date para la base de datos
-  pickupDate: z.string(),
-  deliveryDate: z.string(),
+  // Acepta fechas como string y se mantienen como string en todo el proceso
+  pickupDate: z.string().transform(str => str), // forzamos que se mantenga como string
+  deliveryDate: z.string().transform(str => str), // forzamos que se mantenga como string
   pickupContact: z.string().optional(),
   deliveryContact: z.string().optional(),
   vehicleType: z.nativeEnum(VehicleType),
