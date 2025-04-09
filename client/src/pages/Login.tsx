@@ -22,9 +22,9 @@ export default function Login() {
     setLoading(true);
     
     try {
-      // For this mock login, we'll use a predefined username
-      const username = role === UserRole.AGENT ? 'john.doe' : 'transportes.fast';
-      const companyName = role === UserRole.AGENT ? 'Global Imports Inc.' : 'Transportes Fast';
+      // Para este inicio de sesión de demostración, usaremos nombres en español para el mercado mexicano
+      const username = role === UserRole.AGENT ? 'carlos.rodriguez' : 'transportes.rapido';
+      const companyName = role === UserRole.AGENT ? 'Importaciones Globales S.A.' : 'Transportes Rápido';
       
       // Make API call to login
       const response = await apiRequest('POST', '/api/login', { username, role });

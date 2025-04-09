@@ -54,12 +54,7 @@ export default function AnalyticsDashboard() {
             </Button>
           </div>
           
-          {/* Dashboard Summary with charts */}
-          <div className="mb-8">
-            <DashboardSummary role={role || UserRole.AGENT} />
-          </div>
-          
-          {/* Additional Metrics Section */}
+          {/* Additional Metrics Section moved to the top as requested */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
             <Card className="md:col-span-2">
               <CardHeader>
@@ -151,6 +146,11 @@ export default function AnalyticsDashboard() {
                 </div>
               </CardContent>
             </Card>
+          </div>
+          
+          {/* Dashboard Summary with charts - Moved below performance metrics */}
+          <div className="mb-8">
+            <DashboardSummary role={role || UserRole.AGENT} />
           </div>
         </div>
       </div>
