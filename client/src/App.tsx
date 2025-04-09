@@ -1,8 +1,7 @@
-import { Switch, Route, useLocation } from 'wouter';
+import { Switch, Route } from 'wouter';
 import { queryClient } from './lib/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
-import Login from '@/pages/Login';
 import ProviderRegistration from '@/pages/ProviderRegistration';
 import AgentDashboard from '@/pages/AgentDashboard';
 import CreateRequest from '@/pages/CreateRequest';
@@ -18,40 +17,34 @@ import ClientProposal from '@/pages/ClientProposal';
 import AnalyticsDashboard from '@/pages/AnalyticsDashboard';
 import NotFound from '@/pages/not-found';
 import Demo from '@/pages/Demo';
-import useUserStore from '@/hooks/useUserRole';
-import { useEffect } from 'react';
+import AuthPage from '@/pages/auth-page';
+import { AuthProvider } from '@/hooks/use-auth';
+import { ProtectedRoute } from '@/lib/protected-route';
 
 function Router() {
-  const [location, setLocation] = useLocation();
-  const { isLoggedIn, role } = useUserStore();
-
-  // Temporarily disable redirects to allow viewing all pages
-  useEffect(() => {
-    // Disabled redirection for testing purposes
-    console.log('Auth state:', isLoggedIn ? 'logged in' : 'not logged in');
-    // Original code:
-    // if (!isLoggedIn && location !== '/' && location !== '/provider-registration') {
-    //   setLocation('/');
-    // }
-  }, [isLoggedIn, location, setLocation]);
-
   return (
     <Switch>
-      <Route path="/" component={Login} />
+      {/* Authentication */}
+      <Route path="/auth" component={AuthPage} />
       <Route path="/demo" component={Demo} />
-      <Route path="/provider-registration" component={ProviderRegistration} />
-      <Route path="/agent-dashboard" component={AgentDashboard} />
-      <Route path="/create-request" component={CreateRequest} />
-      <Route path="/active-requests" component={ActiveRequests} />
-      <Route path="/matching-results/:id" component={MatchingResults} />
-      <Route path="/provider-dashboard" component={ProviderDashboard} />
-      <Route path="/provider-active-jobs" component={ProviderActiveJobs} />
-      <Route path="/submit-quote/:id" component={SubmitQuote} />
-      <Route path="/review-bids/:id" component={ReviewBids} />
-      <Route path="/client-proposal/:id" component={ClientProposal} />
-      <Route path="/instruction-letter/:id" component={InstructionLetter} />
-      <Route path="/feedback/:id" component={FeedbackForm} />
-      <Route path="/view-analytics" component={AnalyticsDashboard} />
+      
+      {/* Protected Routes */}
+      <ProtectedRoute path="/" component={AgentDashboard} />
+      <ProtectedRoute path="/provider-registration" component={ProviderRegistration} />
+      <ProtectedRoute path="/agent-dashboard" component={AgentDashboard} />
+      <ProtectedRoute path="/create-request" component={CreateRequest} />
+      <ProtectedRoute path="/active-requests" component={ActiveRequests} />
+      <ProtectedRoute path="/matching-results/:id" component={MatchingResults} />
+      <ProtectedRoute path="/provider-dashboard" component={ProviderDashboard} />
+      <ProtectedRoute path="/provider-active-jobs" component={ProviderActiveJobs} />
+      <ProtectedRoute path="/submit-quote/:id" component={SubmitQuote} />
+      <ProtectedRoute path="/review-bids/:id" component={ReviewBids} />
+      <ProtectedRoute path="/client-proposal/:id" component={ClientProposal} />
+      <ProtectedRoute path="/instruction-letter/:id" component={InstructionLetter} />
+      <ProtectedRoute path="/feedback/:id" component={FeedbackForm} />
+      <ProtectedRoute path="/view-analytics" component={AnalyticsDashboard} />
+      
+      {/* 404 */}
       <Route component={NotFound} />
     </Switch>
   );
@@ -60,10 +53,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen flex flex-col">
-        <Router />
-        <Toaster />
-      </div>
+      <AuthProvider>
+        <div className="min-h-screen flex flex-col">
+          <Router />
+          <Toaster />
+        </div>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

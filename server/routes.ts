@@ -9,41 +9,14 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
+import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API routes
   // All routes are prefixed with /api
   
-  // User routes
-  app.post("/api/login", async (req: Request, res: Response) => {
-    try {
-      const { username, role } = req.body;
-      
-      if (!username || !role || (role !== UserRole.AGENT && role !== UserRole.PROVIDER)) {
-        return res.status(400).json({ message: "Invalid username or role" });
-      }
-      
-      // Check if user exists
-      let user = await storage.getUserByUsername(username);
-      
-      // Create user if doesn't exist (mock login)
-      if (!user) {
-        const newUser = {
-          username,
-          password: "password", // Mock password
-          role,
-          companyName: role === UserRole.AGENT ? "Global Imports Inc." : "Transportes Fast"
-        };
-        
-        user = await storage.createUser(newUser);
-      }
-      
-      return res.status(200).json({ user });
-    } catch (error) {
-      console.error("Login error:", error);
-      return res.status(500).json({ message: "Internal server error" });
-    }
-  });
+  // Set up authentication for routes
+  setupAuth(app);
   
   // Provider routes
   app.post("/api/providers", async (req: Request, res: Response) => {
