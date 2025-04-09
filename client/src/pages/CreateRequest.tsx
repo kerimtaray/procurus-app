@@ -93,19 +93,13 @@ export default function CreateRequest() {
         throw new Error("Pickup date and delivery date are required");
       }
       
-      // Create the formatted data with all required fields
-      // Mantenemos las fechas como strings, que es lo que ahora espera el backend
-      const formattedData = {
-        ...data,
-        weight: Number(data.weight), // Ensure weight is a number
-        volume: data.volume ? Number(data.volume) : undefined, // Optional field
-        additionalEquipment: data.additionalEquipment || [],
-      };
+      // Enviamos los datos directamente sin conversiones
+      // Simplemente mandamos la data original para evitar problemas con tipos
       
-      console.log("Formatted data for submission:", formattedData); // Debug log
+      console.log("Formatted data for submission:", data); // Debug log
       
-      // Submit to API
-      const response = await apiRequest('POST', '/api/shipment-requests', formattedData);
+      // Submit to API - Importante: ya no hacemos más transformaciones
+      const response = await apiRequest('POST', '/api/shipment-requests', data);
       
       if (!response.ok) {
         const errorData = await response.json();

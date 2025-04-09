@@ -12,6 +12,11 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  // Para depuración - permite ver exactamente qué se está enviando
+  if (data) {
+    console.log("Enviando al API:", JSON.stringify(data));
+  }
+  
   const res = await fetch(url, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
