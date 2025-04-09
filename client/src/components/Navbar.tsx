@@ -104,7 +104,6 @@ export default function Navbar({ showBackButton = false, backUrl = "/", backText
           <div className="flex items-center">
             <Link href={role === UserRole.AGENT ? '/agent-dashboard' : '/provider-dashboard'}>
               <div className="flex items-center cursor-pointer">
-                <TruckIcon className={`h-6 w-6 mr-2 ${role === UserRole.AGENT ? 'text-primary' : 'text-teal-700'}`} />
                 <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">Procurus</span>
               </div>
             </Link>
