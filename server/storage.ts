@@ -68,7 +68,7 @@ export interface IStorage {
   getShipmentRequest(id: number): Promise<ShipmentRequest | undefined>;
   getShipmentRequestByRequestId(requestId: string): Promise<ShipmentRequest | undefined>;
   getShipmentRequestsByUserId(userId: number): Promise<ShipmentRequest[]>;
-  createShipmentRequest(request: InsertShipmentRequest): Promise<ShipmentRequest>;
+  createShipmentRequest(request: any): Promise<ShipmentRequest>; // Usando any para evitar problemas con las fechas
   updateShipmentRequestStatus(id: number, status: ShipmentRequestStatus): Promise<ShipmentRequest>;
   assignProvider(requestId: number, providerId: number): Promise<ShipmentRequest>;
   

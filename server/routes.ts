@@ -121,24 +121,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Log the request body for debugging
       console.log("Received shipment request data:", req.body);
       
-      // Modifiquemos el esquema para aceptar strings de fecha en vez de modificar los datos
-      // Esto asegura compatibilidad con la forma en que React Hook Form maneja las fechas
-      const modifiedShipmentRequestSchema = insertShipmentRequestSchema.extend({
-        pickupDate: z.string().transform(val => new Date(val)),
-        deliveryDate: z.string().transform(val => new Date(val))
-      });
+      // Validar usando el esquema que ahora acepta strings para las fechas
+      const validatedData = insertShipmentRequestSchema.parse(req.body);
+      console.log("Validated request data:", validatedData);
       
-      // Validar usando el esquema modificado que acepta strings
-      const validatedData = modifiedShipmentRequestSchema.parse(req.body);
+      // Aquí preparamos los datos para enviar al storage
+      // Convertimos las fechas de string a Date
+      const storageData = {
+        ...validatedData,
+        pickupDate: new Date(validatedData.pickupDate),
+        deliveryDate: new Date(validatedData.deliveryDate)
+      };
       
-      // Asegurarse de que las fechas son válidas 
-      if (isNaN(validatedData.pickupDate.getTime()) || isNaN(validatedData.deliveryDate.getTime())) {
+      // Verificar que las fechas son válidas después de la conversión
+      if (isNaN(storageData.pickupDate.getTime()) || isNaN(storageData.deliveryDate.getTime())) {
         return res.status(400).json({ message: "Invalid date format in request" });
       }
       
-      console.log("Validated request data:", validatedData);
-      
-      const request = await storage.createShipmentRequest(validatedData);
+      const request = await storage.createShipmentRequest(storageData);
       return res.status(201).json(request);
     } catch (error) {
       if (error instanceof z.ZodError) {

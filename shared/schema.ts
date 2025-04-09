@@ -158,13 +158,35 @@ export const shipmentRequests = pgTable("shipment_requests", {
   createdAt: timestamp("created_at").defaultNow().notNull()
 });
 
-export const insertShipmentRequestSchema = createInsertSchema(shipmentRequests).omit({
+// Schema original de Drizzle para la DB
+const baseShipmentRequestSchema = createInsertSchema(shipmentRequests).omit({
   id: true,
   requestId: true,
   userId: true,
   status: true,
   assignedProviderId: true,
   createdAt: true
+});
+
+// Schema personalizado para la API con campos de fecha como strings
+export const insertShipmentRequestSchema = z.object({
+  requestorName: z.string(),
+  company: z.string(),
+  cargoType: z.nativeEnum(CargoType),
+  weight: z.number(),
+  volume: z.number().optional(),
+  packagingType: z.nativeEnum(PackagingType).optional(),
+  specialRequirements: z.string().optional(),
+  pickupAddress: z.string(),
+  deliveryAddress: z.string(),
+  // Acepta fechas como string pero las convierte a Date para la base de datos
+  pickupDate: z.string(),
+  deliveryDate: z.string(),
+  pickupContact: z.string().optional(),
+  deliveryContact: z.string().optional(),
+  vehicleType: z.nativeEnum(VehicleType),
+  vehicleSize: z.string().optional(),
+  additionalEquipment: z.array(z.nativeEnum(AdditionalEquipment)).optional(),
 });
 export type InsertShipmentRequest = z.infer<typeof insertShipmentRequestSchema>;
 export type ShipmentRequest = typeof shipmentRequests.$inferSelect;
