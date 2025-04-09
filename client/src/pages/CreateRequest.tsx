@@ -101,20 +101,25 @@ export default function CreateRequest() {
         throw new Error("Pickup date and delivery date are required");
       }
       
-      // Enviamos los datos directamente sin conversiones
-      // Simplemente mandamos la data original para evitar problemas con tipos
+      // Probemos algo diferente - usar fetch directamente
+      console.log("Enviando al API:", JSON.stringify(data));
       
-      console.log("Formatted data for submission:", data); // Debug log
+      // MÉTODO NUEVO: Usar fetch directamente en vez de apiRequest
+      const fetchResponse = await fetch('/api/shipment-requests', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
       
-      // Submit to API - Importante: ya no hacemos más transformaciones
-      const response = await apiRequest('POST', '/api/shipment-requests', data);
-      
-      if (!response.ok) {
-        const errorData = await response.json();
+      // Comprobamos si hay error
+      if (!fetchResponse.ok) {
+        const errorData = await fetchResponse.json();
         throw new Error(errorData.message || "Error creating request");
       }
       
-      const shipmentRequest = await response.json();
+      const shipmentRequest = await fetchResponse.json();
       
       // Success toast
       toast({
