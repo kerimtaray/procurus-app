@@ -90,8 +90,7 @@ export default function ProviderRegistration() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <TruckIcon className="text-primary h-6 w-6 mr-2" />
-              <span className="font-bold text-xl text-gray-800">LogiConnect</span>
+              <span className="font-bold text-xl bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">Procurus</span>
             </div>
             <div className="flex items-center">
               <a 
