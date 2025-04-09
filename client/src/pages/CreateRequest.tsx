@@ -40,7 +40,14 @@ import useUserStore from '@/hooks/useUserRole';
 const formSchema = insertShipmentRequestSchema.extend({
   pickupDate: z.string().min(1, { message: "Pickup date is required" }),
   deliveryDate: z.string().min(1, { message: "Delivery date is required" }),
-  additionalEquipment: z.array(z.nativeEnum(AdditionalEquipment)).optional(),
+  additionalEquipment: z.array(z.nativeEnum(AdditionalEquipment)).optional().nullable().default([]),
+  packagingType: z.nativeEnum(PackagingType).optional().nullable(),
+  volume: z.number().optional().nullable(),
+  pickupContact: z.string().optional().nullable().default(""),
+  deliveryContact: z.string().optional().nullable().default(""),
+  specialRequirements: z.string().optional().nullable().default(""),
+  vehicleType: z.nativeEnum(VehicleType).optional().nullable(),
+  vehicleSize: z.string().optional().nullable().default(""),
 });
 
 type ShipmentRequestFormValues = z.infer<typeof formSchema>;
@@ -79,15 +86,41 @@ export default function CreateRequest() {
     setIsSubmitting(true);
     
     try {
-      // Convert date strings to Date objects
+      console.log("Form data before submission:", data); // Debug log
+      
+      // Ensure we have valid dates by checking and converting the strings
+      if (!data.pickupDate || !data.deliveryDate) {
+        throw new Error("Pickup date and delivery date are required");
+      }
+      
+      // Convert date strings to Date objects and validate
+      const pickupDate = new Date(data.pickupDate);
+      const deliveryDate = new Date(data.deliveryDate);
+      
+      if (isNaN(pickupDate.getTime()) || isNaN(deliveryDate.getTime())) {
+        throw new Error("Invalid date format");
+      }
+      
+      // Create the formatted data with all required fields
       const formattedData = {
         ...data,
-        pickupDate: new Date(data.pickupDate),
-        deliveryDate: new Date(data.deliveryDate),
+        pickupDate,
+        deliveryDate,
+        weight: Number(data.weight), // Ensure weight is a number
+        volume: data.volume ? Number(data.volume) : undefined, // Optional field
+        additionalEquipment: data.additionalEquipment || [],
       };
+      
+      console.log("Formatted data for submission:", formattedData); // Debug log
       
       // Submit to API
       const response = await apiRequest('POST', '/api/shipment-requests', formattedData);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error creating request");
+      }
+      
       const shipmentRequest = await response.json();
       
       // Success toast
@@ -103,7 +136,7 @@ export default function CreateRequest() {
       console.error("Create request error:", error);
       toast({
         title: "Error Creating Request",
-        description: "There was a problem creating your request. Please try again.",
+        description: error instanceof Error ? error.message : "There was a problem creating your request. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -249,8 +282,14 @@ export default function CreateRequest() {
                                 <Input
                                   type="number"
                                   placeholder="e.g. 20"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || undefined)}
+                                  value={field.value ?? ""}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    field.onChange(val ? parseFloat(val) : undefined);
+                                  }}
+                                  onBlur={field.onBlur}
+                                  name={field.name}
+                                  ref={field.ref}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -266,7 +305,7 @@ export default function CreateRequest() {
                               <FormLabel>Packaging Type</FormLabel>
                               <Select
                                 onValueChange={field.onChange}
-                                defaultValue={field.value}
+                                value={field.value || undefined}
                               >
                                 <FormControl>
                                   <SelectTrigger>
@@ -297,7 +336,11 @@ export default function CreateRequest() {
                                   placeholder="Temperature control, handling instructions, etc."
                                   className="resize-none"
                                   rows={3}
-                                  {...field}
+                                  value={field.value ?? ""}
+                                  onChange={field.onChange}
+                                  onBlur={field.onBlur}
+                                  name={field.name}
+                                  ref={field.ref}
                                 />
                               </FormControl>
                               <FormMessage />
@@ -396,7 +439,11 @@ export default function CreateRequest() {
                                 <FormControl>
                                   <Input
                                     placeholder="Name and phone number"
-                                    {...field}
+                                    value={field.value ?? ""}
+                                    onChange={field.onChange}
+                                    onBlur={field.onBlur}
+                                    name={field.name}
+                                    ref={field.ref}
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -413,7 +460,11 @@ export default function CreateRequest() {
                                 <FormControl>
                                   <Input
                                     placeholder="Name and phone number"
-                                    {...field}
+                                    value={field.value ?? ""}
+                                    onChange={field.onChange}
+                                    onBlur={field.onBlur}
+                                    name={field.name}
+                                    ref={field.ref}
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -444,7 +495,7 @@ export default function CreateRequest() {
                               <FormLabel>Vehicle Type*</FormLabel>
                               <Select
                                 onValueChange={field.onChange}
-                                defaultValue={field.value}
+                                value={field.value || undefined}
                               >
                                 <FormControl>
                                   <SelectTrigger>
@@ -472,7 +523,7 @@ export default function CreateRequest() {
                               <FormLabel>Vehicle Size</FormLabel>
                               <Select
                                 onValueChange={field.onChange}
-                                defaultValue={field.value}
+                                value={field.value || undefined}
                               >
                                 <FormControl>
                                   <SelectTrigger>

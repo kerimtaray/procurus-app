@@ -4,7 +4,8 @@ import { storage } from "./storage";
 import { 
   insertUserSchema, insertProviderSchema, insertShipmentRequestSchema, 
   insertBidSchema, insertFeedbackSchema, UserRole, ProviderStatus,
-  ShipmentRequestStatus, BidStatus
+  ShipmentRequestStatus, BidStatus, CargoType, PackagingType, VehicleType,
+  CurrencyType, AdditionalEquipment
 } from "@shared/schema";
 import { z } from "zod";
 import { fromZodError } from "zod-validation-error";
@@ -117,16 +118,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Shipment request routes
   app.post("/api/shipment-requests", async (req: Request, res: Response) => {
     try {
-      const validatedData = insertShipmentRequestSchema.parse(req.body);
+      // Log the request body for debugging
+      console.log("Received shipment request data:", req.body);
+      
+      // Ensure dates are properly formatted as Date objects
+      const reqData = {
+        ...req.body,
+        // Convert date strings to Date objects if they're not already
+        pickupDate: req.body.pickupDate instanceof Date 
+          ? req.body.pickupDate 
+          : new Date(req.body.pickupDate),
+        deliveryDate: req.body.deliveryDate instanceof Date 
+          ? req.body.deliveryDate 
+          : new Date(req.body.deliveryDate),
+      };
+      
+      // Validate the converted data
+      if (isNaN(reqData.pickupDate.getTime()) || isNaN(reqData.deliveryDate.getTime())) {
+        return res.status(400).json({ message: "Invalid date format in request" });
+      }
+      
+      console.log("Processed request data:", reqData);
+      
+      const validatedData = insertShipmentRequestSchema.parse(reqData);
       const request = await storage.createShipmentRequest(validatedData);
       return res.status(201).json(request);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
+        console.error("Validation error:", validationError);
         return res.status(400).json({ message: validationError.message });
       }
       console.error("Create shipment request error:", error);
-      return res.status(500).json({ message: "Internal server error" });
+      return res.status(500).json({ message: error instanceof Error ? error.message : "Internal server error" });
     }
   });
   
