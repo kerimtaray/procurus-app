@@ -101,11 +101,20 @@ export default function CreateRequest() {
         throw new Error("Invalid date format");
       }
       
+      // Log the date objects to check their format
+      console.log("Date objects:", { 
+        pickupDate, 
+        deliveryDate,
+        pickupDateISO: pickupDate.toISOString(),
+        deliveryDateISO: deliveryDate.toISOString() 
+      });
+      
       // Create the formatted data with all required fields
+      // For debugging, let's try sending the ISO string format which is universally recognized
       const formattedData = {
         ...data,
-        pickupDate,
-        deliveryDate,
+        pickupDate: pickupDate.toISOString(),
+        deliveryDate: deliveryDate.toISOString(),
         weight: Number(data.weight), // Ensure weight is a number
         volume: data.volume ? Number(data.volume) : undefined, // Optional field
         additionalEquipment: data.additionalEquipment || [],
