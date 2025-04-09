@@ -66,6 +66,9 @@ export default function ReviewBids() {
     queryKey: [`/api/shipment-requests/${id}`],
   });
 
+  // Estado local para bids (necesario para manejar actualizaciones manuales)
+  const [localBids, setLocalBids] = useState<Bid[]>([]);
+  
   // Fetch bids for this request
   const { data: bids, isLoading: loadingBids } = useQuery<Bid[]>({
     queryKey: [`/api/shipment-requests/${id}/bids`],
@@ -76,7 +79,9 @@ export default function ReviewBids() {
         const isDemoMode = true; // We'll always show demo data for now
         if (isDemoMode) {
           console.log("Demo mode - returning example bids");
-          return generateDummyBids();
+          const dummyBids = generateDummyBids();
+          setLocalBids(dummyBids);
+          return dummyBids;
         }
         
         const response = await apiRequest('GET', `/api/bids?shipmentRequestId=${id}`);
@@ -269,7 +274,32 @@ export default function ReviewBids() {
       return;
     }
 
-    acceptBidMutation.mutate(selectedBidId);
+    // Simulación local para modo demo (actualizar estado local)
+    if (localBids.length > 0) {
+      const updatedBids = localBids.map(bid => {
+        if (bid.id === selectedBidId) {
+          return { ...bid, status: BidStatus.ACCEPTED };
+        }
+        return bid;
+      });
+      
+      setLocalBids(updatedBids);
+      
+      // Usamos el valor actualizado en lugar de bids
+      queryClient.setQueryData([`/api/shipment-requests/${id}/bids`], updatedBids);
+      
+      toast({
+        title: language === 'es' ? 'Oferta aceptada' : 'Bid Accepted',
+        description: language === 'es' 
+          ? 'Has aceptado la oferta seleccionada' 
+          : 'You have accepted the selected bid',
+      });
+      
+      setSelectedBidId(null);
+    } else {
+      // Si no estamos en modo demo o no hay bids locales, utilizamos la mutación
+      acceptBidMutation.mutate(selectedBidId);
+    }
   };
   
   // States for managing UI
@@ -307,7 +337,30 @@ export default function ReviewBids() {
   
   // Handle cancellation of an approved bid
   const handleCancelApprovedBid = (bidId: number) => {
-    cancelBidMutation.mutate(bidId);
+    // Simulación local para modo demo (actualizar estado local)
+    if (localBids.length > 0) {
+      const updatedBids = localBids.map(bid => {
+        if (bid.id === bidId) {
+          return { ...bid, status: BidStatus.PENDING };
+        }
+        return bid;
+      });
+      
+      setLocalBids(updatedBids);
+      
+      // Usamos el valor actualizado en lugar de bids
+      queryClient.setQueryData([`/api/shipment-requests/${id}/bids`], updatedBids);
+      
+      toast({
+        title: language === 'es' ? 'Aprobación cancelada' : 'Approval Cancelled',
+        description: language === 'es' 
+          ? 'La oferta ha vuelto a estado pendiente' 
+          : 'The quote has been returned to pending status',
+      });
+    } else {
+      // Si no estamos en modo demo o no hay bids locales, utilizamos la mutación
+      cancelBidMutation.mutate(bidId);
+    }
   };
   
   // Calculate price with margin
@@ -670,7 +723,7 @@ export default function ReviewBids() {
                   )}
                   
                   {/* Accepted Quotes Section */}
-                  {sortedBids.some(bid => bid.status === BidStatus.ACCEPTED) && (
+                  {(localBids.length > 0 ? localBids : sortedBids).some(bid => bid.status === BidStatus.ACCEPTED) && (
                     <div className="mt-8">
                       <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-medium text-gray-800">
@@ -682,7 +735,7 @@ export default function ReviewBids() {
                       </div>
                       
                       <div className="space-y-4">
-                        {sortedBids.filter(bid => bid.status === BidStatus.ACCEPTED).map((bid) => {
+                        {(localBids.length > 0 ? localBids : sortedBids).filter(bid => bid.status === BidStatus.ACCEPTED).map((bid) => {
                           const provider = getProviderForBid(bid);
                           const priceWithMargin = calculatePriceWithMargin(bid.price, marginPercentage);
                           
@@ -906,7 +959,7 @@ export default function ReviewBids() {
               {language === 'es' ? 'Volver al Panel' : 'Back to Dashboard'}
             </Button>
             
-            {sortedBids && sortedBids.some(bid => bid.status === BidStatus.ACCEPTED) && (
+            {((localBids.length > 0 ? localBids : sortedBids) && (localBids.length > 0 ? localBids : sortedBids).some(bid => bid.status === BidStatus.ACCEPTED)) && (
               <Button
                 className="bg-primary text-white"
                 onClick={() => setLocation(`/client-proposal/${id}`)}
