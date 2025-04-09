@@ -60,9 +60,7 @@ export default function Login() {
       <Card className="max-w-md w-full">
         <CardContent className="pt-6">
           <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <TruckIcon className="h-10 w-10 text-primary" />
-            </div>
+            
             <h1 className="text-2xl font-bold text-gray-800">
               <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">Procurus</span>
             </h1>
