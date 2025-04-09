@@ -35,16 +35,14 @@ export default function AgentDashboard() {
     avgQuotesPerBooking: language === 'es' ? 'Prom. Ofertas/Solicitud' : 'Avg. Quotes/Booking',
   };
 
-  // Stats calculations
-  const totalBookings = shipmentRequests.length;
-  const pendingBookings = shipmentRequests.filter(req => req.status === 'Pending').length;
-  const assignedBookings = shipmentRequests.filter(req => req.status === 'Assigned').length;
-  
-  // For the demo, calculating some metrics with mock data
-  const potentialProfit = totalBookings * 12000; // Simplified calculation
-  const totalQuotesReceived = totalBookings * 3; // Aproximación, idealmente vendría de la API
-  const avgQuotesPerBooking = totalBookings > 0 ? 
-    (totalQuotesReceived / totalBookings).toFixed(1) : "0";
+  // Datos dummy para el dashboard (como se solicitó)
+  // Estos datos serían reemplazados por datos reales en producción
+  const totalBookings = 24;
+  const pendingBookings = 8;
+  const assignedBookings = 16;
+  const potentialProfit = 345600; // MXN
+  const totalQuotesReceived = 78;
+  const avgQuotesPerBooking = "3.2";
 
   return (
     <div className="min-h-screen flex flex-col">

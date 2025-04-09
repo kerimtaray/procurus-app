@@ -89,6 +89,12 @@ export default function Navbar({ showBackButton = false, backUrl = "/", backText
       active: location === '/provider-dashboard'
     },
     {
+      name: language === 'es' ? 'Trabajos Activos' : 'Active Jobs',
+      icon: <ClipboardListIcon className="h-4 w-4 mr-2" />,
+      href: '/provider-active-jobs',
+      active: location === '/provider-active-jobs'
+    },
+    {
       name: language === 'es' ? 'Cotizar Solicitudes' : 'Submit Quotes',
       icon: <TruckIcon className="h-4 w-4 mr-2" />,
       href: '/submit-quote/1', // Will need dynamic ID in real app
