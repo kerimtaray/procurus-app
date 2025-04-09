@@ -151,32 +151,7 @@ export class MemStorage implements IStorage {
     this.shipmentRequestCurrentId = 1;
     this.bidCurrentId = 1;
     this.feedbackCurrentId = 1;
-    
-    // Crear usuarios predeterminados para demo
-    // Usuario Agente (Usuario para agente logístico)
-    const agentUser: User = {
-      id: this.userCurrentId++,
-      username: "agente",
-      // Para entorno de desarrollo usamos contraseña sin hash
-      password: "agente123", 
-      role: UserRole.AGENT,
-      companyName: "Global Imports Inc.",
-      createdAt: new Date()
-    };
-    this.users.set(agentUser.id, agentUser);
-    
-    // Usuario Proveedor (Usuario para transportista)
-    const providerUser: User = {
-      id: this.userCurrentId++,
-      username: "proveedor",
-      // Para entorno de desarrollo usamos contraseña sin hash
-      password: "proveedor123",
-      role: UserRole.PROVIDER,
-      companyName: "Transportes Fast",
-      createdAt: new Date()
-    };
-    this.users.set(providerUser.id, providerUser);
-    
+
     // Add mock data for providers
     mockProviders.forEach(provider => {
       this.providers.set(provider.id, {
