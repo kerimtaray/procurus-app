@@ -33,6 +33,8 @@ import { formatDate } from '@/lib/utils';
 // Extend the insert schema for the form
 const formSchema = insertBidSchema.extend({
   transitTimeUnit: z.enum(['hours', 'days']),
+  // Asegurarse de que validUntil acepte tanto string como Date para el formulario
+  validUntil: z.string().nullable().optional().transform(val => val ? new Date(val) : null),
 });
 
 type BidFormValues = z.infer<typeof formSchema>;
@@ -94,14 +96,9 @@ export default function SubmitQuote() {
     setIsSubmitting(true);
     
     try {
-      // Format data for API
-      const bidData = {
-        ...data,
-        validUntil: data.validUntil ? new Date(data.validUntil) : undefined,
-      };
-      
+      // validUntil ya es un objeto Date gracias a la transformación en el schema
       // Submit to API
-      const response = await apiRequest('POST', '/api/bids', bidData);
+      const response = await apiRequest('POST', '/api/bids', data);
       const bid = await response.json();
       
       toast({
