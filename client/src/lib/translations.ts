@@ -153,8 +153,8 @@ export const translations: Translations = {
     es: 'Bienvenido a'
   },
   platform: {
-    en: 'Logistics Marketplace Platform',
-    es: 'Plataforma de Mercado Logístico'
+    en: 'AI Procurement Platform',
+    es: 'Plataforma de Adquisiciones IA'
   },
   selectLanguage: {
     en: 'Select language',
