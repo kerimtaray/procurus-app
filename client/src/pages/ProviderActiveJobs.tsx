@@ -44,17 +44,19 @@ export default function ProviderActiveJobs() {
   const [_, setLocation] = useLocation();
   const { username, companyName } = useUserStore();
   const { language } = useLanguage();
-  const [selectedTab, setSelectedTab] = useState<'all' | 'active' | 'pending'>('all');
+  const [selectedTab, setSelectedTab] = useState<'all' | 'active' | 'pending' | 'quote-requests'>('all');
   const [selectedJob, setSelectedJob] = useState<JobWithDetails | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   
   // Translations
   const t = {
-    activeJobs: language === 'es' ? 'Trabajos Activos' : 'Active Jobs',
+    activeJobs: language === 'es' ? 'Trabajos' : 'Jobs',
     allJobs: language === 'es' ? 'Todos los Trabajos' : 'All Jobs',
     activeShipments: language === 'es' ? 'Envíos Activos' : 'Active Shipments',
     pendingApproval: language === 'es' ? 'Pendientes de Aprobación' : 'Pending Approval',
+    quoteRequests: language === 'es' ? 'Solicitudes de Cotización' : 'Quote Requests',
+    submitQuote: language === 'es' ? 'Enviar Cotización' : 'Submit Quote',
     jobId: language === 'es' ? 'ID Trabajo' : 'Job ID',
     client: language === 'es' ? 'Cliente' : 'Client',
     route: language === 'es' ? 'Ruta' : 'Route',
@@ -187,13 +189,52 @@ export default function ProviderActiveJobs() {
     }
   ];
   
+  // Mock data for quote requests
+  const mockQuoteRequests: JobWithDetails[] = [
+    {
+      id: 6,
+      requestId: 'SHP2025006',
+      clientName: 'Electro Systems',
+      route: 'Tijuana → Mexicali',
+      pickupDate: new Date('2025-05-02'),
+      deliveryDate: new Date('2025-05-03'),
+      status: ShipmentRequestStatus.PENDING,
+      bidStatus: BidStatus.PENDING,
+      cargoType: 'Electronics',
+      weight: 2800,
+      vehicleType: 'Dry Van',
+      clientApproved: false,
+      contactPerson: 'Laura Jiménez',
+      contactPhone: '+52 66 4455 6677',
+    },
+    {
+      id: 7,
+      requestId: 'SHP2025007',
+      clientName: 'Agricultural Exports',
+      route: 'Culiacán → Mexico City',
+      pickupDate: new Date('2025-05-10'),
+      deliveryDate: new Date('2025-05-11'),
+      status: ShipmentRequestStatus.PENDING,
+      bidStatus: BidStatus.PENDING,
+      cargoType: 'Perishable Goods',
+      weight: 6200,
+      vehicleType: 'Refrigerated',
+      clientApproved: false,
+      specialInstructions: 'Temperature control required: 2-4°C',
+      contactPerson: 'Miguel Fuentes',
+      contactPhone: '+52 67 1122 3344',
+    },
+  ];
+  
   // Filter jobs based on selected tab
-  const filteredJobs = mockJobs.filter(job => {
-    if (selectedTab === 'all') return true;
-    if (selectedTab === 'active') return job.status === ShipmentRequestStatus.IN_TRANSIT || job.status === ShipmentRequestStatus.ASSIGNED;
-    if (selectedTab === 'pending') return job.bidStatus === BidStatus.PENDING || (!job.clientApproved && job.bidStatus === BidStatus.ACCEPTED);
-    return true;
-  });
+  const filteredJobs = selectedTab === 'quote-requests' 
+    ? mockQuoteRequests 
+    : mockJobs.filter(job => {
+      if (selectedTab === 'all') return true;
+      if (selectedTab === 'active') return job.status === ShipmentRequestStatus.IN_TRANSIT || job.status === ShipmentRequestStatus.ASSIGNED;
+      if (selectedTab === 'pending') return job.bidStatus === BidStatus.PENDING || (!job.clientApproved && job.bidStatus === BidStatus.ACCEPTED);
+      return true;
+    });
   
   // Open the details dialog
   const handleViewDetails = (job: JobWithDetails) => {
@@ -287,10 +328,11 @@ export default function ProviderActiveJobs() {
           </div>
           
           <Tabs defaultValue="all" className="mb-6" onValueChange={(v) => setSelectedTab(v as any)}>
-            <TabsList className="grid grid-cols-3 mb-4">
+            <TabsList className="grid grid-cols-4 mb-4">
               <TabsTrigger value="all">{t.allJobs}</TabsTrigger>
               <TabsTrigger value="active">{t.activeShipments}</TabsTrigger>
               <TabsTrigger value="pending">{t.pendingApproval}</TabsTrigger>
+              <TabsTrigger value="quote-requests">{t.quoteRequests}</TabsTrigger>
             </TabsList>
             
             <TabsContent value="all" className="mt-0">
@@ -526,6 +568,73 @@ export default function ProviderActiveJobs() {
                       <h3 className="mt-2 text-sm font-medium text-gray-900">No pending approvals</h3>
                       <p className="mt-1 text-sm text-gray-500">
                         You don't have any pending approval jobs at the moment.
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="quote-requests" className="mt-0">
+              <Card>
+                <CardContent className="p-6">
+                  {filteredJobs.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>{t.jobId}</TableHead>
+                            <TableHead>{t.client}</TableHead>
+                            <TableHead>{t.route}</TableHead>
+                            <TableHead>{t.pickup}</TableHead>
+                            <TableHead>{t.cargoType}</TableHead>
+                            <TableHead>{t.actions}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredJobs.map((job) => (
+                            <TableRow key={job.id} className="hover:bg-gray-50">
+                              <TableCell className="font-medium">{job.requestId}</TableCell>
+                              <TableCell>{job.clientName}</TableCell>
+                              <TableCell>{job.route}</TableCell>
+                              <TableCell>
+                                {typeof job.pickupDate === 'string' 
+                                  ? job.pickupDate 
+                                  : formatDate(job.pickupDate, { month: 'short', day: 'numeric' })}
+                              </TableCell>
+                              <TableCell>{job.cargoType}</TableCell>
+                              <TableCell>
+                                <div className="flex space-x-2">
+                                  <Button 
+                                    size="sm" 
+                                    variant="outline" 
+                                    className="flex items-center text-xs"
+                                    onClick={() => handleViewDetails(job)}
+                                  >
+                                    <ClipboardIcon className="h-3.5 w-3.5 mr-1" />
+                                    {t.view}
+                                  </Button>
+                                  <Button 
+                                    size="sm"
+                                    className="flex items-center text-xs bg-primary"
+                                    onClick={() => setLocation(`/submit-quote/${job.id}`)}
+                                  >
+                                    <CheckIcon className="h-3.5 w-3.5 mr-1" />
+                                    {t.submitQuote}
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <ClipboardIcon className="mx-auto h-12 w-12 text-gray-400" />
+                      <h3 className="mt-2 text-sm font-medium text-gray-900">No quote requests found</h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        You don't have any pending quote requests at the moment.
                       </p>
                     </div>
                   )}
