@@ -292,12 +292,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Bid routes
   app.post("/api/bids", async (req: Request, res: Response) => {
     try {
+      console.log("Bid data received:", req.body); // Log para depuración
       const validatedData = insertBidSchema.parse(req.body);
+      console.log("Bid data after validation:", validatedData); // Log para depuración
+      
       const bid = await storage.createBid(validatedData);
       return res.status(201).json(bid);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const validationError = fromZodError(error);
+        console.error("Bid validation error:", error.errors); // Log detallado del error
         return res.status(400).json({ message: validationError.message });
       }
       console.error("Create bid error:", error);

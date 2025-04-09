@@ -222,10 +222,16 @@ export const bids = pgTable("bids", {
   createdAt: timestamp("created_at").defaultNow().notNull()
 });
 
-export const insertBidSchema = createInsertSchema(bids).omit({
+// Creamos un schema personalizado para bids con manejo especial para la fecha
+const baseBidSchema = createInsertSchema(bids).omit({
   id: true,
   status: true,
   createdAt: true
+});
+
+export const insertBidSchema = baseBidSchema.extend({
+  // Permite que validUntil sea un string y lo convierte a Date
+  validUntil: z.string().nullable().optional().transform(val => val ? new Date(val) : null),
 });
 export type InsertBid = z.infer<typeof insertBidSchema>;
 export type Bid = typeof bids.$inferSelect;

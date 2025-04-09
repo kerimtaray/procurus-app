@@ -361,9 +361,16 @@ export class MemStorage implements IStorage {
   
   async createBid(insertBid: InsertBid): Promise<Bid> {
     const id = this.bidCurrentId++;
+    
+    // Asegurarnos de que validUntil sea un objeto Date o null
+    const validUntil = insertBid.validUntil 
+      ? (insertBid.validUntil instanceof Date ? insertBid.validUntil : new Date(insertBid.validUntil as any)) 
+      : null;
+      
     const bid: Bid = { 
       ...insertBid, 
       id,
+      validUntil, // Usar el valor procesado
       status: BidStatus.PENDING,
       createdAt: new Date() 
     };
