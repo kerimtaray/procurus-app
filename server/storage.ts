@@ -21,7 +21,9 @@ const mockProviders = [
     score: 4.5,
     onTimeRate: 98,
     responseTime: 0.8,
-    completedJobs: 24
+    completedJobs: 24,
+    location: "Ciudad de México, México",
+    yearsOfOperation: 8
   },
   {
     id: 2,
@@ -29,11 +31,13 @@ const mockProviders = [
     vehicleTypes: [VehicleType.DRY_VAN, VehicleType.REFRIGERATED],
     serviceAreas: [ServiceArea.NATIONWIDE],
     certifications: [CertificationType.ISO14001],
-    currency: CurrencyType.USD,
+    currency: CurrencyType.MXN, // Cambiado a MXN para hacerlo mexicano
     score: 4.0,
     onTimeRate: 97,
     responseTime: 1.2,
-    completedJobs: 18
+    completedJobs: 18,
+    location: "Monterrey, Nuevo León, México",
+    yearsOfOperation: 5
   },
   {
     id: 3,
@@ -45,7 +49,37 @@ const mockProviders = [
     score: 3.5,
     onTimeRate: 95,
     responseTime: 1.5,
-    completedJobs: 16
+    completedJobs: 16,
+    location: "Guadalajara, Jalisco, México",
+    yearsOfOperation: 4
+  },
+  {
+    id: 4,
+    companyName: "Transportes Azteca",
+    vehicleTypes: [VehicleType.REFRIGERATED, VehicleType.TANKER],
+    serviceAreas: [ServiceArea.CENTRAL, ServiceArea.WEST],
+    certifications: [CertificationType.CTPAT, CertificationType.ISO9001],
+    currency: CurrencyType.MXN,
+    score: 4.7,
+    onTimeRate: 99,
+    responseTime: 0.5,
+    completedJobs: 32,
+    location: "Puebla, México",
+    yearsOfOperation: 12
+  },
+  {
+    id: 5,
+    companyName: "LogisMex Express",
+    vehicleTypes: [VehicleType.DRY_VAN, VehicleType.CONTAINER, VehicleType.OTHER],
+    serviceAreas: [ServiceArea.NATIONWIDE],
+    certifications: [CertificationType.OEA],
+    currency: CurrencyType.MXN,
+    score: 4.2,
+    onTimeRate: 96,
+    responseTime: 1.0,
+    completedJobs: 27,
+    location: "Querétaro, México",
+    yearsOfOperation: 6
   }
 ];
 

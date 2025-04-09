@@ -1,10 +1,19 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Copy, MessageCircle, ChevronDown, ChevronUp, Check } from 'lucide-react';
+import { Copy, MessageCircle, ChevronDown, ChevronUp, Check, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Provider } from '@shared/schema';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import useLanguageStore from '@/hooks/useLanguage';
 
 interface ProviderCardProps {
   provider: Provider & { matchPercentage?: number };
@@ -16,6 +25,7 @@ interface ProviderCardProps {
 export default function ProviderCard({ provider, requestId, isSelected, onToggleSelect }: ProviderCardProps) {
   const { toast } = useToast();
   const [expanded, setExpanded] = useState(false);
+  const { language } = useLanguageStore();
   
   // Generate initials from company name
   const getInitials = (name: string) => {
@@ -170,6 +180,71 @@ export default function ProviderCard({ provider, requestId, isSelected, onToggle
           </div>
           
           <div className="flex justify-end space-x-2 mt-3">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="secondary"
+                  className="flex items-center h-7 text-xs px-3"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Info className="mr-1 h-3 w-3" />
+                  {language === 'es' ? 'Más Detalles' : 'More Details'}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center">
+                    <div className={`${provider.companyName === 'Transportes Fast' ? 'bg-primary' : (provider.companyName === 'EcoTransport' ? 'bg-green-600' : 'bg-purple-600')} text-white rounded-full h-8 w-8 flex items-center justify-center mr-3`}>
+                      <span className="text-xs">{getInitials(provider.companyName)}</span>
+                    </div>
+                    {provider.companyName}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {renderStarRating(provider.score || 0)}
+                    <span className="text-gray-600 ml-1">{provider.score || 0}/5 ({provider.completedJobs || 0} trips)</span>
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div className="grid gap-2">
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700">{language === 'es' ? 'Ubicación' : 'Location'}</h4>
+                      <p className="text-sm text-gray-600">{(provider as any).location || 'Ciudad de México, México'}</p>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700">{language === 'es' ? 'Años de Operación' : 'Years in Operation'}</h4>
+                      <p className="text-sm text-gray-600">{(provider as any).yearsOfOperation || 5} {language === 'es' ? 'años' : 'years'}</p>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700">{language === 'es' ? 'Flota' : 'Fleet'}</h4>
+                      <div className="text-sm text-gray-600">
+                        <ul className="list-disc list-inside">
+                          <li>12 {language === 'es' ? 'camiones' : 'trucks'}</li>
+                          <li>8 {language === 'es' ? 'remolques' : 'trailers'}</li>
+                          <li>3 {language === 'es' ? 'unidades refrigeradas' : 'refrigerated units'}</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700">{language === 'es' ? 'Servicios Especiales' : 'Special Services'}</h4>
+                      <p className="text-sm text-gray-600">
+                        {language === 'es' 
+                          ? 'Rastreo en tiempo real, entrega urgente, manejo de carga especial'
+                          : 'Real-time tracking, urgent delivery, special cargo handling'}
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700">{language === 'es' ? 'Clientes Principales' : 'Main Clients'}</h4>
+                      <p className="text-sm text-gray-600">Walmart, Coca-Cola, Nestlé</p>
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+
             <a 
               href={getWhatsAppLink()} 
               target="_blank" 
@@ -178,7 +253,7 @@ export default function ProviderCard({ provider, requestId, isSelected, onToggle
               onClick={(e) => e.stopPropagation()}
             >
               <MessageCircle className="mr-1 h-3 w-3" />
-              Contact via WhatsApp
+              {language === 'es' ? 'Contactar por WhatsApp' : 'Contact via WhatsApp'}
             </a>
             <Button 
               variant="outline" 
@@ -186,7 +261,7 @@ export default function ProviderCard({ provider, requestId, isSelected, onToggle
               className="flex items-center h-7 text-xs px-3"
             >
               <Copy className="mr-1 h-3 w-3" />
-              Copy Message
+              {language === 'es' ? 'Copiar Mensaje' : 'Copy Message'}
             </Button>
           </div>
         </CardContent>
