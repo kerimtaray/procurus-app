@@ -125,20 +125,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertShipmentRequestSchema.parse(req.body);
       console.log("Validated request data:", validatedData);
       
-      // Aquí preparamos los datos para enviar al storage
-      // Convertimos las fechas de string a Date
-      const storageData = {
-        ...validatedData,
-        pickupDate: new Date(validatedData.pickupDate),
-        deliveryDate: new Date(validatedData.deliveryDate)
-      };
-      
-      // Verificar que las fechas son válidas después de la conversión
-      if (isNaN(storageData.pickupDate.getTime()) || isNaN(storageData.deliveryDate.getTime())) {
-        return res.status(400).json({ message: "Invalid date format in request" });
-      }
-      
-      const request = await storage.createShipmentRequest(storageData);
+      // Usar los datos tal como vienen, ya que ahora la base de datos acepta strings para fechas
+      const request = await storage.createShipmentRequest(validatedData);
       return res.status(201).json(request);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -179,29 +167,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: 1,
           requestId: "SHP2025001",
           userId: 1,
-          status: ShipmentRequestStatus.PENDING,
-          assignedProviderId: null,
-          createdAt: new Date(),
+          requestorName: "Global Imports Inc.",
+          company: "Global Imports Inc.",
           cargoType: CargoType.GENERAL,
           weight: 1500,
           volume: 25,
-          packageType: PackagingType.PALLETS,
-          vehicleType: VehicleType.DRY_VAN,
+          packagingType: PackagingType.PALLETS,
           specialRequirements: "Carga de alto valor. Se requiere monitoreo continuo.",
           pickupAddress: "Av. Industrial 123, Zona Central, CDMX",
-          pickupDateTime: new Date("2025-04-15T09:00:00"),
-          pickupContact: "Juan Pérez",
-          pickupInstructions: "Entrada por puerta norte. Presentar identificación.",
           deliveryAddress: "Blvd. Logístico 456, Zona Norte, Monterrey",
-          deliveryDateTime: new Date("2025-04-17T14:00:00"),
+          // Fechas como strings
+          pickupDate: "2025-04-15T09:00:00",
+          deliveryDate: "2025-04-17T14:00:00",
+          pickupContact: "Juan Pérez",
           deliveryContact: "María Gómez",
-          deliveryInstructions: "Horario de recepción: 9am a 4pm",
-          budgetAmount: 12000,
-          currency: CurrencyType.MXN,
-          paymentTerms: "NET 30",
+          vehicleType: VehicleType.DRY_VAN,
+          vehicleSize: "Grande",
           additionalEquipment: [AdditionalEquipment.LIFTGATE, AdditionalEquipment.PALLET_JACK],
-          requestorName: "Global Imports Inc.",
-          company: "Global Imports Inc."
+          status: ShipmentRequestStatus.PENDING,
+          assignedProviderId: null,
+          createdAt: new Date()
         };
         
         return res.status(200).json(mockRequest);

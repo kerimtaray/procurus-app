@@ -88,33 +88,15 @@ export default function CreateRequest() {
     try {
       console.log("Form data before submission:", data); // Debug log
       
-      // Ensure we have valid dates by checking and converting the strings
+      // Ensure we have valid dates by checking them
       if (!data.pickupDate || !data.deliveryDate) {
         throw new Error("Pickup date and delivery date are required");
       }
       
-      // Convert date strings to Date objects and validate
-      const pickupDate = new Date(data.pickupDate);
-      const deliveryDate = new Date(data.deliveryDate);
-      
-      if (isNaN(pickupDate.getTime()) || isNaN(deliveryDate.getTime())) {
-        throw new Error("Invalid date format");
-      }
-      
-      // Log the date objects to check their format
-      console.log("Date objects:", { 
-        pickupDate, 
-        deliveryDate,
-        pickupDateISO: pickupDate.toISOString(),
-        deliveryDateISO: deliveryDate.toISOString() 
-      });
-      
       // Create the formatted data with all required fields
-      // For debugging, let's try sending the ISO string format which is universally recognized
+      // Mantenemos las fechas como strings, que es lo que ahora espera el backend
       const formattedData = {
         ...data,
-        pickupDate: pickupDate.toISOString(),
-        deliveryDate: deliveryDate.toISOString(),
         weight: Number(data.weight), // Ensure weight is a number
         volume: data.volume ? Number(data.volume) : undefined, // Optional field
         additionalEquipment: data.additionalEquipment || [],

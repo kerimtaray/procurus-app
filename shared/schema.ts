@@ -146,8 +146,9 @@ export const shipmentRequests = pgTable("shipment_requests", {
   specialRequirements: text("special_requirements"),
   pickupAddress: text("pickup_address").notNull(),
   deliveryAddress: text("delivery_address").notNull(),
-  pickupDate: timestamp("pickup_date").notNull(),
-  deliveryDate: timestamp("delivery_date").notNull(),
+  // Cambiamos a text para evitar problemas de conversión
+  pickupDate: text("pickup_date").notNull(),
+  deliveryDate: text("delivery_date").notNull(),
   pickupContact: text("pickup_contact"),
   deliveryContact: text("delivery_contact"),
   vehicleType: text("vehicle_type").$type<VehicleType>().notNull(),
