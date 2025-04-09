@@ -157,8 +157,8 @@ export class MemStorage implements IStorage {
     const agentUser: User = {
       id: this.userCurrentId++,
       username: "agente",
-      // La contraseña es "agente123"
-      password: "6e2ec28cdfbf691f7d397f450fc4b872f5fa5a2d48c0d99aaaaaaa8be43ab46d.8e96caef0d05fc99", 
+      // Para entorno de desarrollo usamos contraseña sin hash
+      password: "agente123", 
       role: UserRole.AGENT,
       companyName: "Global Imports Inc.",
       createdAt: new Date()
@@ -169,8 +169,8 @@ export class MemStorage implements IStorage {
     const providerUser: User = {
       id: this.userCurrentId++,
       username: "proveedor",
-      // La contraseña es "proveedor123"
-      password: "6e2ec28cdfbf691f7d397f450fc4b872f5fa5a2d48c0d99aaaaaaa8be43ab46d.8e96caef0d05fc99",
+      // Para entorno de desarrollo usamos contraseña sin hash
+      password: "proveedor123",
       role: UserRole.PROVIDER,
       companyName: "Transportes Fast",
       createdAt: new Date()
