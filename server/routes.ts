@@ -32,7 +32,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           username,
           password: "password", // Mock password
           role,
-          companyName: role === UserRole.AGENT ? "Global Imports Inc." : "Transportes Fast"
+          companyName: role === UserRole.AGENT ? "Importaciones Globales S.A." : "Transportes Rápido"
         };
         
         user = await storage.createUser(newUser);
@@ -156,7 +156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       createdAt: new Date().toISOString(),
       // Algunos datos hardcodeados para demostración
       requestorName: "Demo Request",
-      company: "Global Imports Inc.",
+      company: "Importaciones Globales S.A.",
       cargoType: "General Merchandise",
       weight: 5000,
       volume: 20,
@@ -201,8 +201,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: 1,
           requestId: "SHP2025001",
           userId: 1,
-          requestorName: "Global Imports Inc.",
-          company: "Global Imports Inc.",
+          requestorName: "Importaciones Globales S.A.",
+          company: "Importaciones Globales S.A.",
           cargoType: CargoType.GENERAL,
           weight: 1500,
           volume: 25,
