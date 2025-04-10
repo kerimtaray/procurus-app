@@ -35,6 +35,7 @@ import {
   AdditionalEquipment 
 } from '@shared/schema';
 import useUserStore from '@/hooks/useUserRole';
+import useLanguage from '@/hooks/useLanguage';
 
 // Extend the insert schema for form validation
 // La clave aquí es que las fechas sean tratadas como strings en TODA la aplicación
@@ -65,6 +66,7 @@ export default function CreateRequest() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { username, companyName } = useUserStore();
+  const { language } = useLanguage();
 
   // Initialize form with default values
   const form = useForm<ShipmentRequestFormValues>({
@@ -150,7 +152,9 @@ export default function CreateRequest() {
         <div className="max-w-4xl mx-auto px-4 py-8">
           <Card>
             <CardContent className="p-6">
-              <h1 className="text-2xl font-bold text-gray-800 mb-6">Create Logistics Request</h1>
+              <h1 className="text-2xl font-bold text-gray-800 mb-6">
+                {language === 'es' ? 'Crear Solicitud Logística' : 'Create Logistics Request'}
+              </h1>
               
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -160,7 +164,7 @@ export default function CreateRequest() {
                       <svg className="w-5 h-5 mr-2 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                       </svg>
-                      General Information
+                      {language === 'es' ? 'Información General' : 'General Information'}
                     </h2>
                     <div className="bg-gray-50 p-4 rounded-md">
                       <div className="grid md:grid-cols-2 gap-4">
@@ -219,7 +223,7 @@ export default function CreateRequest() {
                         <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
                         <path fillRule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clipRule="evenodd" />
                       </svg>
-                      Cargo Information
+                      {language === 'es' ? 'Información de Carga' : 'Cargo Information'}
                     </h2>
                     <div className="bg-gray-50 p-4 rounded-md">
                       <div className="grid md:grid-cols-2 gap-4">
@@ -355,7 +359,7 @@ export default function CreateRequest() {
                       <svg className="w-5 h-5 mr-2 text-primary" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                       </svg>
-                      Route Information
+                      {language === 'es' ? 'Información de Ruta' : 'Route Information'}
                     </h2>
                     <div className="bg-gray-50 p-4 rounded-md">
                       <div className="grid gap-4">
@@ -481,7 +485,7 @@ export default function CreateRequest() {
                         <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
                         <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7h2.05a2.5 2.5 0 014.9 0H19a1 1 0 011 1v5a1 1 0 01-1 1h-.05a2.5 2.5 0 01-4.9 0H14a1 1 0 01-1-1V8a1 1 0 011-1z" />
                       </svg>
-                      Vehicle Requirements
+                      {language === 'es' ? 'Requisitos del Vehículo' : 'Vehicle Requirements'}
                     </h2>
                     <div className="bg-gray-50 p-4 rounded-md">
                       <div className="grid md:grid-cols-2 gap-4">
@@ -596,13 +600,15 @@ export default function CreateRequest() {
                       className="mr-2"
                       onClick={() => setLocation('/agent-dashboard')}
                     >
-                      Cancel
+                      {language === 'es' ? 'Cancelar' : 'Cancel'}
                     </Button>
                     <Button
                       type="submit"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? 'Submitting...' : 'Submit Request'}
+                      {isSubmitting 
+                        ? (language === 'es' ? 'Enviando...' : 'Submitting...') 
+                        : (language === 'es' ? 'Enviar Solicitud' : 'Submit Request')}
                     </Button>
                   </div>
                 </form>
