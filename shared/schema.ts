@@ -176,6 +176,7 @@ export type BankingReference = z.infer<typeof bankingReferenceSchema>;
 // Define type for contact information
 export const contactInfoSchema = z.object({
   name: z.string(),
+  position: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email().optional(),
 });
@@ -188,10 +189,20 @@ export const providers = pgTable("providers", {
   companyName: text("company_name").notNull(),
   rfc: text("rfc").notNull(),
   
-  // New fields
+  // Basic info
+  address: text("address"),
+  website: text("website"),
+  
+  // Contact info
+  contacts: json("contacts").$type<ContactInfo[]>(),
+  
+  // Financial info
   paymentTerms: text("payment_terms").$type<PaymentTerms>(),
   creditTerms: text("credit_terms").$type<CreditTerms>(),
   bankingReferences: json("banking_references").$type<BankingReference[]>(),
+  bankingInfo: json("banking_info").$type<{ bankName?: string, accountNumber?: string, clabe?: string }>(),
+  
+  // Operational fields
   quotationContact: json("quotation_contact").$type<ContactInfo>(),
   providerType: text("provider_type").$type<ProviderType>(),
   equipmentHandled: json("equipment_handled").$type<EquipmentHandled[]>(),

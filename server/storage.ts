@@ -97,6 +97,7 @@ export interface IStorage {
   getTopProviders(limit: number): Promise<Provider[]>;
   createProvider(provider: InsertProvider): Promise<Provider>;
   updateProviderStatus(id: number, status: ProviderStatus): Promise<Provider>;
+  updateProvider(id: number, updates: Partial<Provider>): Promise<Provider>;
   
   // Shipment request operations
   getShipmentRequest(id: number): Promise<ShipmentRequest | undefined>;
@@ -159,6 +160,21 @@ export class MemStorage implements IStorage {
         userId: provider.id,
         rfc: `RFC${provider.id}12345XYZ`,
         status: ProviderStatus.APPROVED,
+        address: provider.id === 1 ? "Av. Industria 234, Col. Centro, CDMX, México" : "Av. Revolución 567, Monterrey, Nuevo León, México",
+        website: provider.id === 1 ? "https://transportesfast.mx" : "https://ecotransport.mx",
+        contacts: [
+          {
+            name: provider.id === 1 ? "Juan Pérez" : "Ana Gómez",
+            position: "Gerente de Operaciones",
+            phone: "+52 55 1234 5678",
+            email: provider.id === 1 ? "juan@transportesfast.mx" : "ana@ecotransport.mx"
+          }
+        ],
+        bankingInfo: {
+          bankName: "Banco Nacional de México",
+          accountNumber: `00123456789${provider.id}`,
+          clabe: `012180001234567890${provider.id}`
+        },
         createdAt: new Date()
       } as Provider);
     });
@@ -258,6 +274,17 @@ export class MemStorage implements IStorage {
     }
     
     const updatedProvider = { ...provider, status };
+    this.providers.set(id, updatedProvider);
+    return updatedProvider;
+  }
+  
+  async updateProvider(id: number, updates: Partial<Provider>): Promise<Provider> {
+    const provider = this.providers.get(id);
+    if (!provider) {
+      throw new Error(`Provider with ID ${id} not found`);
+    }
+    
+    const updatedProvider = { ...provider, ...updates };
     this.providers.set(id, updatedProvider);
     return updatedProvider;
   }
