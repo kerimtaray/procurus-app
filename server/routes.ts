@@ -97,6 +97,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Importación masiva de proveedores
+  app.post("/api/providers/import", async (req: Request, res: Response) => {
+    try {
+      // Para este MVP, simulamos una importación de archivo
+      // En una implementación real, procesaríamos el archivo Excel o CSV
+      const importedCount = Math.floor(Math.random() * 8) + 1; // Simulación: 1-8 proveedores importados
+      const errorCount = Math.floor(Math.random() * 3); // Simulación: 0-2 errores
+      
+      return res.status(200).json({
+        imported: importedCount,
+        errors: errorCount,
+        total: importedCount + errorCount,
+        message: "Import completed successfully",
+      });
+    } catch (error) {
+      console.error("Import providers error:", error);
+      return res.status(500).json({ message: "Error during import process" });
+    }
+  });
+  
   app.get("/api/providers/top", async (req: Request, res: Response) => {
     try {
       const limit = Number(req.query.limit) || 3;

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { UserRole, ShipmentRequest } from '@shared/schema';
 import useUserStore from '@/hooks/useUserRole';
 import useLanguage from '@/hooks/useLanguage';
-import { PlusIcon, BarChart3Icon } from 'lucide-react';
+import { PlusIcon, BarChart3Icon, UsersIcon } from 'lucide-react';
 
 export default function AgentDashboard() {
   const [_, navigate] = useLocation();
@@ -60,6 +60,15 @@ export default function AgentDashboard() {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                onClick={() => navigate('/provider-database')}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <UsersIcon className="h-4 w-4" />
+                {language === 'es' ? 'Proveedores' : 'Providers'}
+              </Button>
+              
               <Button
                 onClick={() => navigate('/view-analytics')}
                 variant="outline"
