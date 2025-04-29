@@ -238,7 +238,10 @@ export default function AddProvider() {
     
     try {
       // Create provider
-      const provider = await apiRequest('POST', '/api/providers', data);
+      const provider = await apiRequest('/api/providers', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
       
       // Show success message
       toast({

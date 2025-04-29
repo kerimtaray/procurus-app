@@ -48,9 +48,9 @@ type UpdateProviderFormValues = z.infer<typeof updateProviderSchema>;
 export default function ProviderDetails() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
+  const { language } = useLanguageStore();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const { language } = useLanguageStore();
   const t = (key: string) => translateUI(key, language);
 
   // Fetch provider details
@@ -109,14 +109,14 @@ export default function ProviderDetails() {
     },
     onSuccess: () => {
       toast({
-        title: t("Status updated"),
-        description: t("The provider status has been updated successfully"),
+        title: translateUI("Status updated", language),
+        description: translateUI("The provider status has been updated successfully", language),
       });
       queryClient.invalidateQueries({ queryKey: ["/api/providers", Number(id)] });
     },
     onError: (error: Error) => {
       toast({
-        title: t("Error"),
+        title: translateUI("Error", language),
         description: error.message,
         variant: "destructive",
       });
@@ -134,15 +134,15 @@ export default function ProviderDetails() {
     },
     onSuccess: () => {
       toast({
-        title: t("Provider updated"),
-        description: t("The provider information has been updated successfully"),
+        title: translateUI("Provider updated", language),
+        description: translateUI("The provider information has been updated successfully", language),
       });
       setIsEditing(false);
       queryClient.invalidateQueries({ queryKey: ["/api/providers", Number(id)] });
     },
     onError: (error: Error) => {
       toast({
-        title: t("Error"),
+        title: translateUI("Error", language),
         description: error.message,
         variant: "destructive",
       });
