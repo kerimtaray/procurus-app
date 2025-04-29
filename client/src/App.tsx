@@ -16,6 +16,9 @@ import FeedbackForm from '@/pages/FeedbackForm';
 import ActiveRequests from '@/pages/ActiveRequests';
 import ClientProposal from '@/pages/ClientProposal';
 import AnalyticsDashboard from '@/pages/AnalyticsDashboard';
+import ProviderDatabase from '@/pages/ProviderDatabase';
+import AddProvider from '@/pages/AddProvider';
+import UploadProviders from '@/pages/UploadProviders';
 import NotFound from '@/pages/not-found';
 import Demo from '@/pages/Demo';
 import useUserStore from '@/hooks/useUserRole';
@@ -52,6 +55,10 @@ function Router() {
       <Route path="/instruction-letter/:id" component={InstructionLetter} />
       <Route path="/feedback/:id" component={FeedbackForm} />
       <Route path="/view-analytics" component={AnalyticsDashboard} />
+      {/* Nuevas rutas para gestión de proveedores */}
+      <Route path="/provider-database" component={ProviderDatabase} />
+      <Route path="/add-provider" component={AddProvider} />
+      <Route path="/upload-providers" component={UploadProviders} />
       <Route component={NotFound} />
     </Switch>
   );

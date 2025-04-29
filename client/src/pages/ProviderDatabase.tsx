@@ -137,51 +137,52 @@ export default function ProviderDatabase() {
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
               ) : (
-                <TabsContent value="all" className="m-0">
-                  <div className="border rounded-md">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{language === 'es' ? 'Nombre de la Empresa' : 'Company Name'}</TableHead>
-                          <TableHead>{language === 'es' ? 'RFC' : 'RFC'}</TableHead>
-                          <TableHead>{language === 'es' ? 'Tipo de Proveedor' : 'Provider Type'}</TableHead>
-                          <TableHead>{language === 'es' ? 'Términos de Pago' : 'Payment Terms'}</TableHead>
-                          <TableHead>{language === 'es' ? 'Estado' : 'Status'}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredProviders?.length ? (
-                          filteredProviders.map((provider) => (
-                            <TableRow 
-                              key={provider.id}
-                              className="cursor-pointer hover:bg-gray-50"
-                              onClick={() => handleProviderClick(provider.id)}
-                            >
-                              <TableCell className="font-medium">{provider.companyName}</TableCell>
-                              <TableCell>{provider.rfc}</TableCell>
-                              <TableCell>{provider.providerType || '-'}</TableCell>
-                              <TableCell>{provider.paymentTerms || '-'}</TableCell>
-                              <TableCell>
-                                <StatusBadge status={provider.status} />
+                <>
+                  <TabsContent value="all" className="m-0">
+                    <div className="border rounded-md">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>{language === 'es' ? 'Nombre de la Empresa' : 'Company Name'}</TableHead>
+                            <TableHead>{language === 'es' ? 'RFC' : 'RFC'}</TableHead>
+                            <TableHead>{language === 'es' ? 'Tipo de Proveedor' : 'Provider Type'}</TableHead>
+                            <TableHead>{language === 'es' ? 'Términos de Pago' : 'Payment Terms'}</TableHead>
+                            <TableHead>{language === 'es' ? 'Estado' : 'Status'}</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {filteredProviders?.length ? (
+                            filteredProviders.map((provider) => (
+                              <TableRow 
+                                key={provider.id}
+                                className="cursor-pointer hover:bg-gray-50"
+                                onClick={() => handleProviderClick(provider.id)}
+                              >
+                                <TableCell className="font-medium">{provider.companyName}</TableCell>
+                                <TableCell>{provider.rfc}</TableCell>
+                                <TableCell>{provider.providerType || '-'}</TableCell>
+                                <TableCell>{provider.paymentTerms || '-'}</TableCell>
+                                <TableCell>
+                                  <StatusBadge status={provider.status} />
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          ) : (
+                            <TableRow>
+                              <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                                {searchTerm
+                                  ? (language === 'es' ? 'No se encontraron proveedores con ese criterio de búsqueda' : 'No providers found with that search criteria')
+                                  : (language === 'es' ? 'No hay proveedores registrados' : 'No providers registered yet')}
                               </TableCell>
                             </TableRow>
-                          ))
-                        ) : (
-                          <TableRow>
-                            <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                              {searchTerm
-                                ? (language === 'es' ? 'No se encontraron proveedores con ese criterio de búsqueda' : 'No providers found with that search criteria')
-                                : (language === 'es' ? 'No hay proveedores registrados' : 'No providers registered yet')}
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </TabsContent>
-                
-                {/* Duplicate this table content for other tabs (approved, pending, rejected) with filtered data */}
-                {/* For simplicity, we'll implement just the "all" tab here */}
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </TabsContent>
+                  
+                  {/* Tabs for future implementation */}
+                </>
               )}
             </Tabs>
           </CardContent>
