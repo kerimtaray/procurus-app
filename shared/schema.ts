@@ -34,7 +34,95 @@ export const insertUserSchema = createInsertSchema(users).omit({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-// Vehicle types
+// Payment Terms
+export enum PaymentTerms {
+  ON_DELIVERY = "On Delivery",
+  CREDIT = "Credit",
+}
+
+// Credit Terms
+export enum CreditTerms {
+  DAYS_7 = "7 days",
+  DAYS_15 = "15 days",
+  DAYS_30 = "30 days",
+  DAYS_60 = "60 days",
+  NA = "N/A",
+}
+
+// Provider Types
+export enum ProviderType {
+  NATIONAL = "National",
+  PORTS = "Ports",
+  TRANSFER = "Transfer",
+  INTERNATIONAL = "International",
+  TRANSSHIPMENT = "Transshipment",
+}
+
+// Equipment Handled - Using specific Mexican terms
+export enum EquipmentHandled {
+  CAJA_SECA = "Caja Seca",
+  PLATAFORMA = "Plataforma",
+  PORTACONTENEDOR_SENCILLO = "Portacontenedor Sencillo",
+  PORTACONTENEDOR_FULL = "Portacontenedor Full",
+  TORTON = "Torton",
+  RABON = "Rabón",
+  TRES_MEDIO = "3½",
+  REFRIGERADO = "Refrigerado",
+  LOW_BOY = "Low boy",
+  STEP_DECK = "Step Deck",
+  NISSAN = "Nissan",
+  ESTAQUITA = "Estaquita",
+  MADRINA = "Madrina",
+  CONSOLIDADO = "Consolidado",
+  OTHER = "Other",
+}
+
+// Ports Covered
+export enum PortsCovered {
+  MANZANILLO = "Manzanillo",
+  LAZARO_CARDENAS = "Lázaro Cárdenas",
+  ALTAMIRA = "Altamira",
+  VERACRUZ = "Veracruz",
+  ENSENADA = "Ensenada",
+  PUERTO_PROGRESO = "Puerto Progreso",
+  OTHER = "Other",
+}
+
+// Airports Covered
+export enum AirportsCovered {
+  AIFA = "AIFA",
+  AICM = "AICM",
+  MONTERREY = "Monterrey",
+  GUADALAJARA = "Guadalajara",
+  OTHER = "Other",
+}
+
+// Border Crossings
+export enum BorderCrossings {
+  NUEVO_LAREDO = "Nuevo Laredo",
+  COLOMBIA = "Colombia",
+  JUAREZ = "Juárez",
+  TIJUANA = "Tijuana",
+  MEXICALI = "Mexicali",
+  NOGALES = "Nogales",
+  REYNOSA = "Reynosa",
+  MATAMOROS = "Matamoros",
+  NUEVO_PROGRESO = "Nuevo Progreso",
+  PIEDRAS_NEGRAS = "Piedras Negras",
+  OTHER = "Other",
+  NA = "N/A",
+}
+
+// Cargo Types
+export enum CargoTypesHandled {
+  GENERAL = "General",
+  REFRIGERATED = "Refrigerated",
+  HAZARDOUS = "Hazardous",
+  OVERSIZED_OVERWEIGHT = "Oversized/Overweight",
+  OTHER = "Other",
+}
+
+// Vehicle types (keeping for backward compatibility)
 export enum VehicleType {
   DRY_VAN = "Dry Van",
   FLATBED = "Flatbed",
@@ -76,17 +164,49 @@ export enum ProviderStatus {
   REJECTED = "Rejected",
 }
 
+// Define type for banking reference
+export const bankingReferenceSchema = z.object({
+  name: z.string(),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+});
+export type BankingReference = z.infer<typeof bankingReferenceSchema>;
+
+// Define type for contact information
+export const contactInfoSchema = z.object({
+  name: z.string(),
+  phone: z.string().optional(),
+  email: z.string().email().optional(),
+});
+export type ContactInfo = z.infer<typeof contactInfoSchema>;
+
 // Providers table
 export const providers = pgTable("providers", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
   companyName: text("company_name").notNull(),
   rfc: text("rfc").notNull(),
+  
+  // New fields
+  paymentTerms: text("payment_terms").$type<PaymentTerms>(),
+  creditTerms: text("credit_terms").$type<CreditTerms>(),
+  bankingReferences: json("banking_references").$type<BankingReference[]>(),
+  quotationContact: json("quotation_contact").$type<ContactInfo>(),
+  providerType: text("provider_type").$type<ProviderType>(),
+  equipmentHandled: json("equipment_handled").$type<EquipmentHandled[]>(),
+  portsCovered: json("ports_covered").$type<PortsCovered[]>(),
+  airportsCovered: json("airports_covered").$type<AirportsCovered[]>(),
+  borderCrossings: json("border_crossings").$type<BorderCrossings[]>(),
+  cargoTypesHandled: json("cargo_types_handled").$type<CargoTypesHandled[]>(),
+  storageYardsLocation: json("storage_yards_location").$type<string[]>(),
+  
+  // Existing fields
   vehicleTypes: json("vehicle_types").$type<VehicleType[]>().notNull(),
   serviceAreas: json("service_areas").$type<ServiceArea[]>().notNull(),
   currency: text("currency").$type<CurrencyType>().notNull(),
   certifications: json("certifications").$type<CertificationType[]>(),
-  status: text("status").$type<ProviderStatus>().notNull().default("Pending"),
+  status: text("status").$type<ProviderStatus>().notNull().default(ProviderStatus.PENDING),
   score: doublePrecision("score").default(0),
   onTimeRate: doublePrecision("on_time_rate").default(0),
   responseTime: doublePrecision("response_time").default(0),
@@ -168,7 +288,7 @@ export const shipmentRequests = pgTable("shipment_requests", {
   status: text("status")
     .$type<ShipmentRequestStatus>()
     .notNull()
-    .default("Pending"),
+    .default(ShipmentRequestStatus.PENDING),
   assignedProviderId: integer("assigned_provider_id").references(
     () => providers.id,
   ),
@@ -239,7 +359,7 @@ export const bids = pgTable("bids", {
   availability: text("availability").$type<AvailabilityStatus>().notNull(),
   validUntil: timestamp("valid_until"),
   notes: text("notes"),
-  status: text("status").$type<BidStatus>().notNull().default("Pending"),
+  status: text("status").$type<BidStatus>().notNull().default(BidStatus.PENDING),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
