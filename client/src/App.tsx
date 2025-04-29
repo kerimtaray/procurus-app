@@ -17,6 +17,7 @@ import ActiveRequests from '@/pages/ActiveRequests';
 import ClientProposal from '@/pages/ClientProposal';
 import AnalyticsDashboard from '@/pages/AnalyticsDashboard';
 import ProviderDatabase from '@/pages/ProviderDatabase';
+import ProviderDetails from '@/pages/ProviderDetails';
 import AddProvider from '@/pages/AddProvider';
 import UploadProviders from '@/pages/UploadProviders';
 import NotFound from '@/pages/not-found';
@@ -57,6 +58,7 @@ function Router() {
       <Route path="/view-analytics" component={AnalyticsDashboard} />
       {/* Nuevas rutas para gestión de proveedores */}
       <Route path="/provider-database" component={ProviderDatabase} />
+      <Route path="/provider-details/:id" component={ProviderDetails} />
       <Route path="/add-provider" component={AddProvider} />
       <Route path="/upload-providers" component={UploadProviders} />
       <Route component={NotFound} />

@@ -61,15 +61,6 @@ export default function AgentDashboard() {
             
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
-                onClick={() => navigate('/provider-database')}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <UsersIcon className="h-4 w-4" />
-                {language === 'es' ? 'Proveedores' : 'Providers'}
-              </Button>
-              
-              <Button
                 onClick={() => navigate('/view-analytics')}
                 variant="outline"
                 className="flex items-center gap-2"

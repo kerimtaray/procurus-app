@@ -10,7 +10,8 @@ import {
   PlusCircleIcon, 
   ListChecksIcon,
   UserCheckIcon,
-  MenuIcon
+  MenuIcon,
+  UsersIcon
 } from 'lucide-react';
 import { useState } from 'react';
 import useUserStore from '@/hooks/useUserRole';
@@ -76,10 +77,10 @@ export default function Navbar({ showBackButton = false, backUrl = "/", backText
       active: location === '/active-requests'
     },
     {
-      name: language === 'es' ? 'Revisar Cotizaciones' : 'Review Quotes',
-      icon: <ListChecksIcon className="h-4 w-4 mr-2" />,
-      href: '/review-bids/1', // Will need dynamic ID in real app
-      active: location.startsWith('/review-bids/')
+      name: language === 'es' ? 'Proveedores' : 'Providers',
+      icon: <UsersIcon className="h-4 w-4 mr-2" />,
+      href: '/provider-database',
+      active: location === '/provider-database' || location === '/add-provider' || location === '/upload-providers'
     }
   ] : [
     {
