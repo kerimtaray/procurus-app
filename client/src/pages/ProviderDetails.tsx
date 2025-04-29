@@ -1,727 +1,765 @@
-import { useState, useEffect } from 'react';
-import { useParams, useLocation } from 'wouter';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { queryClient } from '@/lib/queryClient';
+import { useEffect, useState } from "react";
+import { useParams, useLocation } from "wouter";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { 
-  Truck as TruckIcon, 
-  Briefcase as BriefcaseIcon, 
-  Phone as PhoneIcon, 
-  Mail as MailIcon, 
-  MapPin as MapPinIcon, 
-  FileText as FileTextIcon, 
-  CreditCard as CreditCardIcon,
-  Check as CheckIcon,
-  X as XIcon,
-  Edit as EditIcon,
-  Save as SaveIcon,
-  Copy as CopyIcon
-} from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import Navbar from '@/components/Navbar';
-import useLanguage from '@/hooks/useLanguage';
-import {
-  Provider,
-  ProviderStatus,
-  EquipmentHandled,
-  CertificationType
-} from '@shared/schema';
+import { useToast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Provider, ProviderStatus } from "@shared/schema";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import Navbar from "@/components/Navbar";
+import { Check, Edit, MapPin, Building, Phone, Mail, Globe, Truck, Calendar, Clock, DollarSign, FileText, Languages, Award } from "lucide-react";
+import { translateUI, useLanguageStore } from "@/lib/translations";
+
+// Define a schema for the updatable fields
+const updateProviderSchema = z.object({
+  address: z.string().optional(),
+  website: z.string().optional(),
+  bankingInfo: z.object({
+    bankName: z.string().optional(),
+    accountNumber: z.string().optional(),
+    clabe: z.string().optional(),
+  }).optional(),
+});
+
+type UpdateProviderFormValues = z.infer<typeof updateProviderSchema>;
 
 export default function ProviderDetails() {
-  const { id } = useParams<{ id: string }>();
-  const [_, navigate] = useLocation();
-  const { language } = useLanguage();
+  const { id } = useParams();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
-  const [editedProvider, setEditedProvider] = useState<Partial<Provider>>({});
-  
-  // Translations
-  const t = {
-    providerDetails: language === 'es' ? 'Detalles del Proveedor' : 'Provider Details',
-    overview: language === 'es' ? 'Vista General' : 'Overview',
-    services: language === 'es' ? 'Servicios' : 'Services',
-    equipment: language === 'es' ? 'Equipamiento' : 'Equipment',
-    coverage: language === 'es' ? 'Cobertura' : 'Coverage',
-    contacts: language === 'es' ? 'Contactos' : 'Contacts',
-    financialInfo: language === 'es' ? 'Información Financiera' : 'Financial Information',
-    editProvider: language === 'es' ? 'Editar Proveedor' : 'Edit Provider',
-    saveChanges: language === 'es' ? 'Guardar Cambios' : 'Save Changes',
-    cancelEditing: language === 'es' ? 'Cancelar' : 'Cancel',
-    approve: language === 'es' ? 'Aprobar' : 'Approve',
-    reject: language === 'es' ? 'Rechazar' : 'Reject',
-    companyInfo: language === 'es' ? 'Información de la Empresa' : 'Company Information',
-    companyName: language === 'es' ? 'Nombre de la Empresa' : 'Company Name',
-    rfc: language === 'es' ? 'RFC' : 'RFC',
-    address: language === 'es' ? 'Dirección' : 'Address',
-    website: language === 'es' ? 'Sitio Web' : 'Website',
-    providerType: language === 'es' ? 'Tipo de Proveedor' : 'Provider Type',
-    status: language === 'es' ? 'Estado' : 'Status',
-    paymentTerms: language === 'es' ? 'Términos de Pago' : 'Payment Terms',
-    creditTerms: language === 'es' ? 'Términos de Crédito' : 'Credit Terms',
-    serviceAreas: language === 'es' ? 'Áreas de Servicio' : 'Service Areas',
-    equipmentTypes: language === 'es' ? 'Tipos de Equipamiento' : 'Equipment Types',
-    vehicleTypes: language === 'es' ? 'Tipos de Vehículos' : 'Vehicle Types',
-    cargoTypes: language === 'es' ? 'Tipos de Carga' : 'Cargo Types',
-    portsCovered: language === 'es' ? 'Puertos Cubiertos' : 'Ports Covered',
-    airportsCovered: language === 'es' ? 'Aeropuertos Cubiertos' : 'Airports Covered',
-    borderCrossings: language === 'es' ? 'Cruces Fronterizos' : 'Border Crossings',
-    contactPerson: language === 'es' ? 'Persona de Contacto' : 'Contact Person',
-    phone: language === 'es' ? 'Teléfono' : 'Phone',
-    email: language === 'es' ? 'Correo Electrónico' : 'Email',
-    position: language === 'es' ? 'Cargo' : 'Position',
-    bankInfo: language === 'es' ? 'Información Bancaria' : 'Banking Information',
-    bankName: language === 'es' ? 'Nombre del Banco' : 'Bank Name',
-    accountNumber: language === 'es' ? 'Número de Cuenta' : 'Account Number',
-    clabe: language === 'es' ? 'CLABE' : 'CLABE',
-    certifications: language === 'es' ? 'Certificaciones' : 'Certifications',
-    approved: language === 'es' ? 'Aprobado' : 'Approved',
-    pending: language === 'es' ? 'Pendiente' : 'Pending',
-    rejected: language === 'es' ? 'Rechazado' : 'Rejected',
-    backToList: language === 'es' ? 'Volver a la Lista' : 'Back to List',
-    notFound: language === 'es' ? 'Proveedor no encontrado' : 'Provider not found',
-    savedSuccess: language === 'es' ? 'Cambios guardados exitosamente' : 'Changes saved successfully',
-    approvedSuccess: language === 'es' ? 'Proveedor aprobado exitosamente' : 'Provider approved successfully',
-    rejectedSuccess: language === 'es' ? 'Proveedor rechazado exitosamente' : 'Provider rejected successfully',
-    errorSaving: language === 'es' ? 'Error al guardar cambios' : 'Error saving changes',
-  };
+  const { language } = useLanguageStore();
+  const t = (key: string) => translateUI(key, language);
 
   // Fetch provider details
-  const { data: provider, isLoading } = useQuery<Provider>({
-    queryKey: [`/api/providers/${id}`],
-    enabled: !!id,
+  const { data: provider, isLoading, error } = useQuery<Provider>({
+    queryKey: ["/api/providers", Number(id)],
+    queryFn: async () => {
+      const response = await fetch(`/api/providers/${id}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch provider");
+      }
+      return response.json();
+    },
   });
 
-  // Initialize form state when provider data is loaded
+  // Define form with default values
+  const form = useForm<UpdateProviderFormValues>({
+    resolver: zodResolver(updateProviderSchema),
+    defaultValues: {
+      address: "",
+      website: "",
+      bankingInfo: {
+        bankName: "",
+        accountNumber: "",
+        clabe: "",
+      },
+    },
+  });
+
+  // Update form default values when provider data is loaded
   useEffect(() => {
     if (provider) {
-      setEditedProvider(provider);
+      form.reset({
+        address: provider.address || "",
+        website: provider.website || "",
+        bankingInfo: provider.bankingInfo ? {
+          bankName: provider.bankingInfo.bankName || "",
+          accountNumber: provider.bankingInfo.accountNumber || "",
+          clabe: provider.bankingInfo.clabe || "",
+        } : {
+          bankName: "",
+          accountNumber: "",
+          clabe: "",
+        },
+      });
     }
-  }, [provider]);
+  }, [provider, form]);
 
-  // Update provider mutation
-  const updateProviderMutation = useMutation({
-    mutationFn: async (data: Partial<Provider>) => {
-      const response = await fetch(`/api/providers/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to update provider');
-      }
-      
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/providers/${id}`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/providers'] });
-      toast({
-        title: t.savedSuccess,
-        variant: 'default',
-      });
-      setIsEditing(false);
-    },
-    onError: () => {
-      toast({
-        title: t.errorSaving,
-        variant: 'destructive',
-      });
-    },
-  });
-
-  // Update provider status mutation
-  const updateStatusMutation = useMutation({
+  // Status update mutation
+  const statusMutation = useMutation({
     mutationFn: async (status: ProviderStatus) => {
-      const response = await fetch(`/api/providers/${id}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await apiRequest(`/api/providers/${id}/status`, {
+        method: "PATCH",
         body: JSON.stringify({ status }),
       });
-      
-      if (!response.ok) {
-        throw new Error('Failed to update status');
-      }
-      
-      return response.json();
+      return response;
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/providers/${id}`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/providers'] });
-      
+    onSuccess: () => {
       toast({
-        title: variables === ProviderStatus.APPROVED 
-          ? t.approvedSuccess 
-          : t.rejectedSuccess,
-        variant: 'default',
+        title: t("Status updated"),
+        description: t("The provider status has been updated successfully"),
       });
+      queryClient.invalidateQueries({ queryKey: ["/api/providers", Number(id)] });
     },
-    onError: () => {
+    onError: (error: Error) => {
       toast({
-        title: t.errorSaving,
-        variant: 'destructive',
+        title: t("Error"),
+        description: error.message,
+        variant: "destructive",
       });
     },
   });
 
-  // Handle form input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setEditedProvider(prev => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  // Update provider mutation
+  const updateMutation = useMutation({
+    mutationFn: async (data: UpdateProviderFormValues) => {
+      const response = await apiRequest(`/api/providers/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      });
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: t("Provider updated"),
+        description: t("The provider information has been updated successfully"),
+      });
+      setIsEditing(false);
+      queryClient.invalidateQueries({ queryKey: ["/api/providers", Number(id)] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: t("Error"),
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
 
-  // Handle save changes
-  const handleSaveChanges = () => {
-    updateProviderMutation.mutate(editedProvider);
-  };
-
-  // Handle status update
   const handleStatusUpdate = (status: ProviderStatus) => {
-    updateStatusMutation.mutate(status);
+    statusMutation.mutate(status);
   };
 
-  // Status badge component
+  const onSubmit = (data: UpdateProviderFormValues) => {
+    updateMutation.mutate(data);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-4">
+        <Navbar showBackButton backUrl="/providers" backText={t("Back to providers")} />
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p>{t("Loading provider details...")}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !provider) {
+    return (
+      <div className="container mx-auto p-4">
+        <Navbar showBackButton backUrl="/providers" backText={t("Back to providers")} />
+        <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded-md mt-4">
+          <h3 className="text-lg font-semibold">{t("Error")}</h3>
+          <p>{t("Failed to load provider details. Please try again.")}</p>
+          <Button variant="outline" className="mt-2" onClick={() => setLocation("/providers")}>
+            {t("Return to providers list")}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   const StatusBadge = ({ status }: { status: ProviderStatus }) => {
-    let variant: "default" | "secondary" | "destructive" | "outline" = "default";
-    let icon = null;
+    let className = "bg-gray-200 text-gray-800";
     
-    switch (status) {
-      case ProviderStatus.APPROVED:
-        variant = "default";
-        icon = <CheckIcon className="w-4 h-4 mr-1" />;
-        break;
-      case ProviderStatus.REJECTED:
-        variant = "destructive";
-        icon = <XIcon className="w-4 h-4 mr-1" />;
-        break;
-      default:
-        variant = "secondary";
-        icon = null;
+    if (status === ProviderStatus.APPROVED) {
+      className = "bg-green-100 text-green-800";
+    } else if (status === ProviderStatus.REJECTED) {
+      className = "bg-red-100 text-red-800";
+    } else if (status === ProviderStatus.PENDING) {
+      className = "bg-yellow-100 text-yellow-800";
     }
     
     return (
-      <Badge variant={variant} className="flex items-center">
-        {icon}
+      <Badge className={className}>
         {status}
       </Badge>
     );
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
-        <Navbar showBackButton backUrl="/provider-database" backText={t.backToList} />
-        <div className="container mx-auto px-4 py-6 flex-1">
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!provider) {
-    return (
-      <div className="min-h-screen flex flex-col bg-gray-50">
-        <Navbar showBackButton backUrl="/provider-database" backText={t.backToList} />
-        <div className="container mx-auto px-4 py-6 flex-1">
-          <div className="flex justify-center items-center h-64">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">{t.notFound}</h2>
-              <Button onClick={() => navigate('/provider-database')}>
-                {t.backToList}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar showBackButton backUrl="/provider-database" backText={t.backToList} />
+    <div className="container mx-auto p-4">
+      <Navbar showBackButton backUrl="/providers" backText={t("Back to providers")} />
       
-      <div className="container mx-auto px-4 py-6 flex-1">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{provider.companyName}</h1>
-            <div className="flex items-center space-x-2 mt-1">
-              <StatusBadge status={provider.status} />
-            </div>
-          </div>
-          
-          <div className="flex space-x-2 mt-4 md:mt-0">
-            {!isEditing ? (
-              <>
-                <Button 
-                  variant="outline"
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2"
-                >
-                  <EditIcon className="h-4 w-4" />
-                  {t.editProvider}
-                </Button>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+        {/* Provider header */}
+        <div className="md:col-span-3">
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-2xl font-bold">{provider.companyName}</CardTitle>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-1 text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Building className="h-4 w-4" />
+                      <span>{t("RFC")}: {provider.rfc}</span>
+                    </div>
+                    <div className="hidden sm:block">•</div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>{t("Member since")}: {new Date(provider.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div className="hidden sm:block">•</div>
+                    <StatusBadge status={provider.status} />
+                  </div>
+                </div>
                 
-                {provider.status === ProviderStatus.PENDING && (
-                  <>
+                <div className="flex gap-2 items-center">
+                  {!isEditing && (
                     <Button 
-                      variant="default"
-                      onClick={() => handleStatusUpdate(ProviderStatus.APPROVED)}
-                      className="flex items-center gap-2"
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setIsEditing(true)}
+                      className="flex items-center gap-1"
                     >
-                      <CheckIcon className="h-4 w-4" />
-                      {t.approve}
+                      <Edit className="h-4 w-4" />
+                      {t("Edit")}
                     </Button>
-                    
-                    <Button 
-                      variant="destructive"
-                      onClick={() => handleStatusUpdate(ProviderStatus.REJECTED)}
-                      className="flex items-center gap-2"
-                    >
-                      <XIcon className="h-4 w-4" />
-                      {t.reject}
-                    </Button>
-                  </>
-                )}
-              </>
-            ) : (
-              <>
-                <Button 
-                  variant="default"
-                  onClick={handleSaveChanges}
-                  className="flex items-center gap-2"
-                  disabled={updateProviderMutation.isPending}
-                >
-                  {updateProviderMutation.isPending ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    <SaveIcon className="h-4 w-4" />
                   )}
-                  {t.saveChanges}
-                </Button>
-                
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setEditedProvider(provider);
-                  }}
-                  className="flex items-center gap-2"
-                >
-                  <XIcon className="h-4 w-4" />
-                  {t.cancelEditing}
-                </Button>
-              </>
-            )}
-          </div>
+                  
+                  {provider.status === ProviderStatus.PENDING && (
+                    <>
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        onClick={() => handleStatusUpdate(ProviderStatus.APPROVED)}
+                        disabled={statusMutation.isPending}
+                      >
+                        <Check className="h-4 w-4 mr-1" />
+                        {t("Approve")}
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => handleStatusUpdate(ProviderStatus.REJECTED)}
+                        disabled={statusMutation.isPending}
+                      >
+                        {t("Reject")}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+          </Card>
         </div>
         
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="overview">{t.overview}</TabsTrigger>
-            <TabsTrigger value="services">{t.services}</TabsTrigger>
-            <TabsTrigger value="coverage">{t.coverage}</TabsTrigger>
-            <TabsTrigger value="contacts">{t.contacts}</TabsTrigger>
-            <TabsTrigger value="financial">{t.financialInfo}</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="overview" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BriefcaseIcon className="h-5 w-5 mr-2" />
-                  {t.companyInfo}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="companyName">{t.companyName}</Label>
-                    {isEditing ? (
-                      <Input
-                        id="companyName"
-                        name="companyName"
-                        value={editedProvider.companyName || ''}
-                        onChange={handleInputChange}
-                      />
-                    ) : (
-                      <div className="text-gray-700 font-medium">{provider.companyName}</div>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="rfc">{t.rfc}</Label>
-                    {isEditing ? (
-                      <Input
-                        id="rfc"
-                        name="rfc"
-                        value={editedProvider.rfc || ''}
-                        onChange={handleInputChange}
-                      />
-                    ) : (
-                      <div className="text-gray-700 font-medium">{provider.rfc}</div>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="address">{t.address}</Label>
-                    {isEditing ? (
-                      <Textarea
-                        id="address"
-                        name="address"
-                        value={editedProvider.address || ''}
-                        onChange={handleInputChange}
-                        rows={3}
-                      />
-                    ) : (
-                      <div className="text-gray-700 whitespace-pre-line">{provider.address || '-'}</div>
-                    )}
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="website">{t.website}</Label>
-                    {isEditing ? (
-                      <Input
-                        id="website"
-                        name="website"
-                        value={editedProvider.website || ''}
-                        onChange={handleInputChange}
-                      />
-                    ) : (
-                      <div className="text-gray-700">
-                        {provider.website ? (
-                          <a href={provider.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
-                            {provider.website}
-                          </a>
-                        ) : (
-                          '-'
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="providerType">{t.providerType}</Label>
-                    {isEditing ? (
-                      <Input
-                        id="providerType"
-                        name="providerType"
-                        value={editedProvider.providerType || ''}
-                        onChange={handleInputChange}
-                      />
-                    ) : (
-                      <div className="text-gray-700 font-medium">{provider.providerType || '-'}</div>
-                    )}
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label>{t.status}</Label>
-                    <div>
-                      <StatusBadge status={provider.status} />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        {/* Main content */}
+        <div className="md:col-span-2">
+          <Tabs defaultValue="general" className="w-full">
+            <TabsList className="mb-4 w-full justify-start">
+              <TabsTrigger value="general">{t("General Information")}</TabsTrigger>
+              <TabsTrigger value="services">{t("Services")}</TabsTrigger>
+              <TabsTrigger value="financial">{t("Financial")}</TabsTrigger>
+            </TabsList>
             
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <CreditCardIcon className="h-5 w-5 mr-2" />
-                  {t.paymentTerms}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="paymentTerms">{t.paymentTerms}</Label>
-                  {isEditing ? (
-                    <Input
-                      id="paymentTerms"
-                      name="paymentTerms"
-                      value={editedProvider.paymentTerms || ''}
-                      onChange={handleInputChange}
-                    />
-                  ) : (
-                    <div className="text-gray-700 font-medium">{provider.paymentTerms || '-'}</div>
-                  )}
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="creditTerms">{t.creditTerms}</Label>
-                  {isEditing ? (
-                    <Input
-                      id="creditTerms"
-                      name="creditTerms"
-                      value={editedProvider.creditTerms || ''}
-                      onChange={handleInputChange}
-                    />
-                  ) : (
-                    <div className="text-gray-700 font-medium">{provider.creditTerms || '-'}</div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="services" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <TruckIcon className="h-5 w-5 mr-2" />
-                  {t.serviceAreas}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {provider.serviceAreas?.map((area, index) => (
-                    <Badge key={index} variant="outline" className="justify-center py-2">
-                      {area}
-                    </Badge>
-                  )) || (
-                    <div className="text-gray-500 italic col-span-full">
-                      {language === 'es' ? 'No hay áreas de servicio registradas' : 'No service areas registered'}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <FileTextIcon className="h-5 w-5 mr-2" />
-                  {t.certifications}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {provider.certifications?.map((cert, index) => (
-                    <Badge key={index} variant="outline" className="justify-center py-2">
-                      {cert}
-                    </Badge>
-                  )) || (
-                    <div className="text-gray-500 italic col-span-full">
-                      {language === 'es' ? 'No hay certificaciones registradas' : 'No certifications registered'}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="coverage" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <TabsContent value="general">
               <Card>
                 <CardHeader>
-                  <CardTitle>{t.portsCovered}</CardTitle>
+                  <CardTitle>{t("Contact Information")}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 gap-2">
-                    {provider.portsCovered?.map((port, index) => (
-                      <Badge key={index} variant="outline" className="justify-center py-2">
-                        {port}
-                      </Badge>
-                    )) || (
-                      <div className="text-gray-500 italic">
-                        {language === 'es' ? 'No hay puertos registrados' : 'No ports registered'}
+                  {isEditing ? (
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="address"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t("Address")}</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  placeholder={t("Enter company address")} 
+                                  className="resize-none" 
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="website"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t("Website")}</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder={t("Enter company website")} 
+                                  {...field} 
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <div className="pt-4 flex justify-end gap-2">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => setIsEditing(false)}
+                            disabled={updateMutation.isPending}
+                          >
+                            {t("Cancel")}
+                          </Button>
+                          <Button 
+                            type="submit"
+                            disabled={updateMutation.isPending}
+                          >
+                            {updateMutation.isPending ? t("Saving...") : t("Save Changes")}
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  ) : (
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1">{t("Address")}</h3>
+                        <div className="flex items-start gap-2">
+                          <MapPin className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+                          <p>{provider.address || t("No address provided")}</p>
+                        </div>
                       </div>
-                    )}
+                      
+                      <div>
+                        <h3 className="text-sm font-medium text-muted-foreground mb-1">{t("Website")}</h3>
+                        <div className="flex items-center gap-2">
+                          <Globe className="h-5 w-5 text-muted-foreground" />
+                          {provider.website ? (
+                            <a 
+                              href={provider.website.startsWith('http') ? provider.website : `https://${provider.website}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline"
+                            >
+                              {provider.website}
+                            </a>
+                          ) : (
+                            <p>{t("No website provided")}</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              
+              <Card className="mt-4">
+                <CardHeader>
+                  <CardTitle>{t("Performance Metrics")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h3 className="text-sm font-medium text-blue-900 mb-1">{t("Rating")}</h3>
+                      <div className="flex items-center gap-2">
+                        <Award className="h-5 w-5 text-blue-700" />
+                        <span className="text-xl font-bold text-blue-700">
+                          {provider.score ? provider.score.toFixed(1) : "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h3 className="text-sm font-medium text-green-900 mb-1">{t("On-time Rate")}</h3>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-5 w-5 text-green-700" />
+                        <span className="text-xl font-bold text-green-700">
+                          {provider.onTimeRate ? `${provider.onTimeRate}%` : "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-purple-50 p-4 rounded-lg">
+                      <h3 className="text-sm font-medium text-purple-900 mb-1">{t("Completed Jobs")}</h3>
+                      <div className="flex items-center gap-2">
+                        <Truck className="h-5 w-5 text-purple-700" />
+                        <span className="text-xl font-bold text-purple-700">
+                          {provider.completedJobs || "0"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
               
-              <Card>
+              <Card className="mt-4">
                 <CardHeader>
-                  <CardTitle>{t.airportsCovered}</CardTitle>
+                  <CardTitle>{t("Contact Persons")}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 gap-2">
-                    {provider.airportsCovered?.map((airport, index) => (
-                      <Badge key={index} variant="outline" className="justify-center py-2">
-                        {airport}
-                      </Badge>
-                    )) || (
-                      <div className="text-gray-500 italic">
-                        {language === 'es' ? 'No hay aeropuertos registrados' : 'No airports registered'}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle>{t.borderCrossings}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                    {provider.borderCrossings?.map((border, index) => (
-                      <Badge key={index} variant="outline" className="justify-center py-2">
-                        {border}
-                      </Badge>
-                    )) || (
-                      <div className="text-gray-500 italic col-span-full">
-                        {language === 'es' ? 'No hay cruces fronterizos registrados' : 'No border crossings registered'}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="contacts" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <PhoneIcon className="h-5 w-5 mr-2" />
-                  {t.contacts}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {provider.contacts?.length ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>{t.contactPerson}</TableHead>
-                        <TableHead>{t.position}</TableHead>
-                        <TableHead>{t.phone}</TableHead>
-                        <TableHead>{t.email}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                  {provider.contacts && provider.contacts.length > 0 ? (
+                    <div className="space-y-4">
                       {provider.contacts.map((contact, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">{contact.name}</TableCell>
-                          <TableCell>{contact.position}</TableCell>
-                          <TableCell>
-                            <a href={`tel:${contact.phone}`} className="text-primary hover:underline">
-                              {contact.phone}
-                            </a>
-                          </TableCell>
-                          <TableCell>
-                            <a href={`mailto:${contact.email}`} className="text-primary hover:underline">
-                              {contact.email}
-                            </a>
-                          </TableCell>
-                        </TableRow>
+                        <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                          <h3 className="font-medium">{contact.name}</h3>
+                          <p className="text-sm text-muted-foreground">{contact.position}</p>
+                          <div className="mt-2 space-y-1">
+                            {contact.phone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-4 w-4 text-muted-foreground" />
+                                <span>{contact.phone}</span>
+                              </div>
+                            )}
+                            {contact.email && (
+                              <div className="flex items-center gap-2">
+                                <Mail className="h-4 w-4 text-muted-foreground" />
+                                <a href={`mailto:${contact.email}`} className="text-primary hover:underline">
+                                  {contact.email}
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       ))}
-                    </TableBody>
-                  </Table>
-                ) : (
-                  <div className="text-gray-500 italic">
-                    {language === 'es' ? 'No hay contactos registrados' : 'No contacts registered'}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">{t("No contact persons provided")}</p>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="services">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("Services Offered")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="font-medium mb-2">{t("Provider Type")}</h3>
+                      <Badge variant="outline" className="bg-blue-50">
+                        {provider.providerType || t("Not specified")}
+                      </Badge>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium mb-2">{t("Vehicle Types")}</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {provider.vehicleTypes && provider.vehicleTypes.length > 0 ? (
+                          provider.vehicleTypes.map((type, index) => (
+                            <Badge key={index} variant="outline" className="bg-green-50">
+                              {type}
+                            </Badge>
+                          ))
+                        ) : (
+                          <p className="text-muted-foreground">{t("No vehicle types specified")}</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium mb-2">{t("Equipment Handled")}</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {provider.equipmentHandled && provider.equipmentHandled.length > 0 ? (
+                          provider.equipmentHandled.map((equipment, index) => (
+                            <Badge key={index} variant="outline" className="bg-amber-50">
+                              {equipment}
+                            </Badge>
+                          ))
+                        ) : (
+                          <p className="text-muted-foreground">{t("No equipment types specified")}</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium mb-2">{t("Service Areas")}</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {provider.serviceAreas && provider.serviceAreas.length > 0 ? (
+                          provider.serviceAreas.map((area, index) => (
+                            <Badge key={index} variant="outline" className="bg-purple-50">
+                              {area}
+                            </Badge>
+                          ))
+                        ) : (
+                          <p className="text-muted-foreground">{t("No service areas specified")}</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium mb-2">{t("Cargo Types Handled")}</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {provider.cargoTypesHandled && provider.cargoTypesHandled.length > 0 ? (
+                          provider.cargoTypesHandled.map((cargo, index) => (
+                            <Badge key={index} variant="outline" className="bg-red-50">
+                              {cargo}
+                            </Badge>
+                          ))
+                        ) : (
+                          <p className="text-muted-foreground">{t("No cargo types specified")}</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="font-medium mb-2">{t("Certifications")}</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {provider.certifications && provider.certifications.length > 0 ? (
+                          provider.certifications.map((cert, index) => (
+                            <Badge key={index} variant="outline" className="bg-indigo-50">
+                              {cert}
+                            </Badge>
+                          ))
+                        ) : (
+                          <p className="text-muted-foreground">{t("No certifications specified")}</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="financial">
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t("Financial Information")}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {isEditing ? (
+                    <Form {...form}>
+                      <form className="space-y-4">
+                        <h3 className="font-medium">{t("Banking Information")}</h3>
+                        <FormField
+                          control={form.control}
+                          name="bankingInfo.bankName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t("Bank Name")}</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder={t("Enter bank name")} 
+                                  {...field} 
+                                  value={field.value || ""}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="bankingInfo.accountNumber"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t("Account Number")}</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder={t("Enter account number")} 
+                                  {...field} 
+                                  value={field.value || ""}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="bankingInfo.clabe"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>{t("CLABE")}</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder={t("Enter CLABE")} 
+                                  {...field} 
+                                  value={field.value || ""}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </form>
+                    </Form>
+                  ) : (
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="font-medium mb-2">{t("Payment Terms")}</h3>
+                        <p>
+                          {provider.paymentTerms || t("Not specified")}
+                          {provider.creditTerms && provider.paymentTerms === "Credit" && (
+                            <span className="ml-2 text-muted-foreground">({provider.creditTerms})</span>
+                          )}
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <h3 className="font-medium mb-2">{t("Banking Information")}</h3>
+                        {provider.bankingInfo ? (
+                          <div className="space-y-2">
+                            <div>
+                              <span className="text-sm text-muted-foreground">{t("Bank Name")}:</span>
+                              <p>{provider.bankingInfo.bankName || t("Not provided")}</p>
+                            </div>
+                            <div>
+                              <span className="text-sm text-muted-foreground">{t("Account Number")}:</span>
+                              <p>{provider.bankingInfo.accountNumber || t("Not provided")}</p>
+                            </div>
+                            <div>
+                              <span className="text-sm text-muted-foreground">{t("CLABE")}:</span>
+                              <p>{provider.bankingInfo.clabe || t("Not provided")}</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-muted-foreground">{t("No banking information provided")}</p>
+                        )}
+                      </div>
+                      
+                      <div>
+                        <h3 className="font-medium mb-2">{t("Currency")}</h3>
+                        <p>{provider.currency}</p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+        
+        {/* Sidebar */}
+        <div className="md:col-span-1">
+          <Card>
+            <CardHeader>
+              <CardTitle>{t("Quick Actions")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => window.open(`mailto:${provider.contacts?.[0]?.email || ''}`)}
+                >
+                  <Mail className="mr-2 h-4 w-4" />
+                  {t("Contact Provider")}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => setLocation(`/providers/${id}/history`)}
+                >
+                  <Clock className="mr-2 h-4 w-4" />
+                  {t("View History")}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => setLocation(`/providers/${id}/documents`)}
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  {t("View Documents")}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
           
-          <TabsContent value="financial" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <CreditCardIcon className="h-5 w-5 mr-2" />
-                  {t.bankInfo}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {provider.bankingInfo ? (
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label>{t.bankName}</Label>
-                      <div className="text-gray-700 font-medium">
-                        {provider.bankingInfo.bankName || '-'}
-                      </div>
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>{t("Coverage")}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {provider.portsCovered && provider.portsCovered.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium">{t("Ports Covered")}</h3>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {provider.portsCovered.map((port, index) => (
+                        <Badge key={index} variant="outline" className="bg-blue-50 text-xs">
+                          {port}
+                        </Badge>
+                      ))}
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label>{t.accountNumber}</Label>
-                      <div className="flex items-center space-x-2">
-                        <div className="text-gray-700 font-medium">
-                          {provider.bankingInfo.accountNumber || '-'}
-                        </div>
-                        {provider.bankingInfo.accountNumber && (
-                          <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            className="h-6 w-6"
-                            onClick={() => {
-                              navigator.clipboard.writeText(provider.bankingInfo?.accountNumber || '');
-                              toast({
-                                title: 'Copied to clipboard',
-                                duration: 2000,
-                              });
-                            }}
-                          >
-                            <CopyIcon className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>{t.clabe}</Label>
-                      <div className="flex items-center space-x-2">
-                        <div className="text-gray-700 font-medium">
-                          {provider.bankingInfo.clabe || '-'}
-                        </div>
-                        {provider.bankingInfo.clabe && (
-                          <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            className="h-6 w-6"
-                            onClick={() => {
-                              navigator.clipboard.writeText(provider.bankingInfo?.clabe || '');
-                              toast({
-                                title: 'Copied to clipboard',
-                                duration: 2000,
-                              });
-                            }}
-                          >
-                            <CopyIcon className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-gray-500 italic">
-                    {language === 'es' ? 'No hay información bancaria registrada' : 'No banking information registered'}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                
+                {provider.airportsCovered && provider.airportsCovered.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium">{t("Airports Covered")}</h3>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {provider.airportsCovered.map((airport, index) => (
+                        <Badge key={index} variant="outline" className="bg-gray-50 text-xs">
+                          {airport}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {provider.borderCrossings && provider.borderCrossings.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium">{t("Border Crossings")}</h3>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {provider.borderCrossings.map((crossing, index) => (
+                        <Badge key={index} variant="outline" className="bg-green-50 text-xs">
+                          {crossing}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {provider.storageYardsLocation && provider.storageYardsLocation.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium">{t("Storage Yard Locations")}</h3>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {provider.storageYardsLocation.map((location, index) => (
+                        <Badge key={index} variant="outline" className="bg-amber-50 text-xs">
+                          {location}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {(!provider.portsCovered || provider.portsCovered.length === 0) &&
+                 (!provider.airportsCovered || provider.airportsCovered.length === 0) &&
+                 (!provider.borderCrossings || provider.borderCrossings.length === 0) &&
+                 (!provider.storageYardsLocation || provider.storageYardsLocation.length === 0) && (
+                  <p className="text-muted-foreground text-sm">{t("No coverage information provided")}</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

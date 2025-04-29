@@ -163,6 +163,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     },
   );
+  
+  // Update provider information
+  app.patch(
+    "/api/providers/:id",
+    async (req: Request, res: Response) => {
+      try {
+        const id = Number(req.params.id);
+        const updates = req.body;
+        
+        // Validate provider exists
+        const existingProvider = await storage.getProvider(id);
+        if (!existingProvider) {
+          return res.status(404).json({ message: "Provider not found" });
+        }
+        
+        // Update provider
+        const updatedProvider = await storage.updateProvider(id, updates);
+        return res.status(200).json(updatedProvider);
+      } catch (error) {
+        console.error("Update provider error:", error);
+        return res.status(500).json({ message: "Internal server error" });
+      }
+    },
+  );
 
   // Shipment request routes (original - desactivado)
   app.post(

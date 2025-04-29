@@ -1,4 +1,16 @@
-import { Language } from '@/hooks/useLanguage';
+import { create } from 'zustand';
+
+export type Language = 'en' | 'es';
+
+interface LanguageState {
+  language: Language;
+  setLanguage: (language: Language) => void;
+}
+
+export const useLanguageStore = create<LanguageState>((set) => ({
+  language: 'en',
+  setLanguage: (language) => set({ language }),
+}));
 
 type TranslationKey = 
   | 'login'
@@ -321,4 +333,15 @@ export const translations: Translations = {
 
 export const t = (key: TranslationKey, language: Language): string => {
   return translations[key][language];
+};
+
+// Función de traducción general para usar en cualquier cadena
+export const translateUI = (key: string, language: Language): string => {
+  // Primero intentamos buscar en las traducciones predefinidas
+  if (key in translations) {
+    return translations[key as TranslationKey][language];
+  }
+  
+  // Si no existe como clave, devolvemos la cadena original
+  return key;
 };
